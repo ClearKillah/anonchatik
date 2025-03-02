@@ -1,0 +1,39 @@
+name: Auto Push Changes
+
+on:
+  # Запускается при любых изменениях файлов
+  push:
+    paths-ignore:
+      - '.github/workflows/**'  # Игнорируем изменения в самих workflow файлах
+  
+  # Запускается каждый час
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  auto-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Git config
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+      - name: Check for changes
+        run: |
+          if [[ -n $(git status -s) ]]; then
+            echo "CHANGES_EXIST=true" >> $GITHUB_ENV
+          fi
+          
+      - name: Commit and push if changes exist
+        if: env.CHANGES_EXIST == 'true'
+        run: |
+          git add .
+          git commit -m "Auto-commit: Update changes [skip ci]"
+          git push 
