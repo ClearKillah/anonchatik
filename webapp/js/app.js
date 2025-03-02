@@ -208,6 +208,41 @@ document.addEventListener('DOMContentLoaded', () => {
             messages.scrollTop = messages.scrollHeight;
         });
 
+        // Дополнительное отслеживание событий socket.io для отладки
+        socket.io.on("error", (error) => {
+            console.error("Socket.io error:", error);
+        });
+
+        socket.io.on("reconnect_attempt", (attempt) => {
+            console.log("Socket.io reconnection attempt:", attempt);
+        });
+
+        socket.io.on("reconnect", (attempt) => {
+            console.log("Socket.io reconnected after", attempt, "attempts");
+            
+            // После успешного переподключения повторно регистрируем пользователя
+            let telegramId = null;
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                telegramId = tg.initDataUnsafe.user.id;
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                telegramId = urlParams.get('id');
+            }
+            
+            if (telegramId) {
+                console.log('Re-registering user after reconnection:', telegramId);
+                socket.emit('register', { userId: telegramId });
+            }
+        });
+
+        socket.io.on("reconnect_error", (error) => {
+            console.error("Socket.io reconnection error:", error);
+        });
+
+        socket.io.on("reconnect_failed", () => {
+            console.error("Socket.io reconnection failed");
+        });
+
         // Получение сообщения
         socket.on('message', (data) => {
             console.log('Received message:', data);
@@ -285,6 +320,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Инициализация обработчиков событий
     function initializeEventListeners() {
+        // Обработчик кастомного события для кнопки поиска собеседника
+        document.addEventListener('find-partner-click', function() {
+            console.log('Custom find-partner-click event received');
+            
+            // Проверяем, установлено ли соединение
+            if (!socket || !socket.connected) {
+                console.error('Socket not connected in custom event handler');
+                
+                // Переподключаемся и пробуем снова
+                initializeSocket();
+                
+                setTimeout(() => {
+                    if (socket && socket.connected) {
+                        socket.emit('findPartner');
+                        showScreen(waitingScreen);
+                    } else {
+                        alert('Не удается установить соединение с сервером');
+                    }
+                }, 1000);
+                
+                return;
+            }
+            
+            // Вызываем поиск собеседника
+            console.log('Custom event handler: emitting findPartner');
+            socket.emit('findPartner');
+            showScreen(waitingScreen);
+        });
+
         // Кнопка поиска собеседника
         findPartnerBtn.addEventListener('click', () => {
             console.log('Find partner button clicked');
@@ -411,6 +475,38 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Устанавливаем начальную высоту viewport
     viewportHeight = window.innerHeight;
+
+    // Принудительно добавляем обработчик события клика напрямую для решения возможных проблем с делегированием
+    document.getElementById('find-partner-btn').onclick = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        console.log('Direct click handler activated');
+        
+        if (!socket || !socket.connected) {
+            console.error('Socket not connected in direct handler');
+            
+            // Переподключаемся и пробуем снова
+            initializeSocket();
+            
+            setTimeout(() => {
+                if (socket && socket.connected) {
+                    socket.emit('findPartner');
+                    showScreen(waitingScreen);
+                } else {
+                    alert('Не удается установить соединение с сервером');
+                }
+            }, 1000);
+            
+            return false;
+        }
+        
+        // Вызываем поиск собеседника
+        console.log('Direct handler: emitting findPartner');
+        socket.emit('findPartner');
+        showScreen(waitingScreen);
+        
+        return false;
+    };
 
     // Уведомляем Telegram, что приложение готово
     tg.ready();

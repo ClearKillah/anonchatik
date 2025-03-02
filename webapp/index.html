@@ -21,7 +21,7 @@
             </div>
             <p class="description">Общайтесь анонимно с случайными людьми прямо в Telegram!</p>
             <p id="status-message" class="status-message">Подключение к серверу...</p>
-            <button id="find-partner-btn" class="primary-btn" type="button" aria-label="Найти собеседника">Найти собеседника</button>
+            <button id="find-partner-btn" class="primary-btn" type="button" aria-label="Найти собеседника" onclick="document.dispatchEvent(new CustomEvent('find-partner-click'));">Найти собеседника</button>
         </div>
 
         <!-- Экран ожидания -->
