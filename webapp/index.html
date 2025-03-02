@@ -7,18 +7,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
     <meta name="theme-color" content="#2AABEE">
+    <meta name="color-scheme" content="light dark">
     <title>Anonymous Chat</title>
     <link rel="stylesheet" href="css/style.css">
     <!-- Telegram Mini App API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body>
+<body class="tg-app">
     <div class="container">
         <!-- Экран с кнопкой поиска -->
         <div id="start-screen" class="screen active">
             <div class="logo">
                 <img src="img/logo.svg" alt="Anonymous Chat Logo">
-                <h1>Anonymous Chat</h1>
+                <h1>ANONCHATIK</h1>
             </div>
             <p class="description">Общайтесь анонимно с случайными людьми прямо в Telegram!</p>
             <button id="find-partner-btn" class="primary-btn" type="button" aria-label="Найти собеседника">Найти собеседника</button>
@@ -28,6 +29,7 @@
         <div id="waiting-screen" class="screen">
             <div class="spinner"></div>
             <p>Поиск собеседника...</p>
+            <p class="hint">Пожалуйста, подождите</p>
         </div>
 
         <!-- Экран чата -->
@@ -36,9 +38,9 @@
                 <h2>Анонимный чат</h2>
                 <button id="skip-partner-btn" class="skip-btn" type="button" aria-label="Пропустить">Пропустить</button>
             </div>
-            <div id="messages" class="messages"></div>
+            <div id="messages" class="messages" role="log" aria-live="polite"></div>
             <div class="input-area">
-                <input type="text" id="message-input" placeholder="Введите сообщение..." autocomplete="off" autocapitalize="sentences" autocorrect="on" enterkeyhint="send" inputmode="text">
+                <input type="text" id="message-input" placeholder="Введите сообщение..." autocomplete="off" autocapitalize="sentences" autocorrect="on" enterkeyhint="send" inputmode="text" aria-label="Сообщение">
                 <button id="send-message-btn" type="button" aria-label="Отправить">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
