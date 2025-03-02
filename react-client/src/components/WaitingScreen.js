@@ -153,7 +153,7 @@ const WaitingScreen = () => {
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [containerRef.current]);
+  }, []);
   
   return (
     <Container ref={containerRef}>

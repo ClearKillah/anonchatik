@@ -173,7 +173,7 @@ const ChatScreen = ({ messages, onSendMessage, onSkipPartner }) => {
       messagesContainer.removeEventListener('touchstart', handleTouchStart);
       messagesContainer.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [messagesContainerRef.current]);
+  }, []);
   
   return (
     <Container>

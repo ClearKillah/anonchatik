@@ -175,7 +175,7 @@ const StartScreen = ({ onFindPartner }) => {
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [containerRef.current]);
+  }, []);
   
   // Обработчик нажатия на кнопку с предотвращением сворачивания
   const handleFindPartner = (e) => {

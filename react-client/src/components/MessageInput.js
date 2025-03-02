@@ -130,7 +130,7 @@ const MessageInput = ({ onSendMessage }) => {
       inputArea.removeEventListener('touchstart', handleTouchStart);
       inputArea.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [inputAreaRef.current]);
+  }, []);
   
   // Обработка фокуса на поле ввода
   useEffect(() => {
@@ -150,7 +150,7 @@ const MessageInput = ({ onSendMessage }) => {
     return () => {
       input.removeEventListener('focus', handleFocus);
     };
-  }, [inputRef.current]);
+  }, []);
   
   const handleSend = () => {
     if (!message.trim()) return;
