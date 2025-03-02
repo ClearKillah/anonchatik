@@ -8,13 +8,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Переключаем в полноэкранный режим, если API поддерживает это
     if (tg.version && parseFloat(tg.version) >= 8.0) {
-        // Запрашиваем полноэкранный режим
+        // Запрашиваем полноэкранный режим сразу при запуске
         tg.requestFullscreen();
+        
+        // Устанавливаем класс для полноэкранного режима
+        document.body.classList.add('fullscreen-mode');
         
         // Обработчик события изменения полноэкранного режима
         tg.onEvent('fullscreenChanged', (isFullscreen) => {
             console.log('Fullscreen mode changed:', isFullscreen);
             document.body.classList.toggle('fullscreen-mode', isFullscreen);
+            
+            // Обновляем иконки на кнопках
+            updateFullscreenIcons(isFullscreen);
             
             // Обновляем высоту viewport при изменении режима
             updateViewportHeight();
@@ -23,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Обработчик события неудачного перехода в полноэкранный режим
         tg.onEvent('fullscreenFailed', (error) => {
             console.error('Failed to enter fullscreen mode:', error);
+            document.body.classList.remove('fullscreen-mode');
+            
+            // Обновляем иконки на кнопках
+            updateFullscreenIcons(false);
         });
         
         // Обработчик события изменения безопасной области
@@ -414,6 +424,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Функция для обновления иконок на кнопках полноэкранного режима
+    function updateFullscreenIcons(isFullscreen) {
+        const fullscreenIcon = isFullscreen ? 
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+            </svg>` : 
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+            </svg>`;
+        
+        // Обновляем иконку на главном экране
+        const fullscreenToggle = document.getElementById('fullscreen-toggle');
+        if (fullscreenToggle) {
+            fullscreenToggle.innerHTML = fullscreenIcon;
+        }
+        
+        // Обновляем иконку в чате
+        const fullscreenToggleChat = document.getElementById('fullscreen-toggle-chat');
+        if (fullscreenToggleChat) {
+            fullscreenToggleChat.innerHTML = fullscreenIcon;
+        }
+    }
+
+    // Функция для переключения полноэкранного режима
+    function toggleFullscreen() {
+        if (tg.isFullscreen) {
+            // Если уже в полноэкранном режиме, выходим из него
+            tg.exitFullscreen();
+            
+            // Обновляем иконки на всех кнопках
+            updateFullscreenIcons(false);
+        } else {
+            // Если не в полноэкранном режиме, входим в него
+            tg.requestFullscreen();
+            
+            // Обновляем иконки на всех кнопках
+            updateFullscreenIcons(true);
+        }
+    }
+
     // Инициализация обработчиков событий
     function initializeEventListeners() {
         // Обработчики событий для кнопок
@@ -460,46 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.remove('input-focused');
         });
         
-        // Функция для переключения полноэкранного режима
-        const toggleFullscreen = () => {
-            if (tg.isFullscreen) {
-                // Если уже в полноэкранном режиме, выходим из него
-                tg.exitFullscreen();
-                
-                // Обновляем иконки на всех кнопках
-                updateFullscreenIcons(false);
-            } else {
-                // Если не в полноэкранном режиме, входим в него
-                tg.requestFullscreen();
-                
-                // Обновляем иконки на всех кнопках
-                updateFullscreenIcons(true);
-            }
-        };
-        
-        // Функция для обновления иконок на кнопках полноэкранного режима
-        const updateFullscreenIcons = (isFullscreen) => {
-            const fullscreenIcon = isFullscreen ? 
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
-                </svg>` : 
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                </svg>`;
-            
-            // Обновляем иконку на главном экране
-            const fullscreenToggle = document.getElementById('fullscreen-toggle');
-            if (fullscreenToggle) {
-                fullscreenToggle.innerHTML = fullscreenIcon;
-            }
-            
-            // Обновляем иконку в чате
-            const fullscreenToggleChat = document.getElementById('fullscreen-toggle-chat');
-            if (fullscreenToggleChat) {
-                fullscreenToggleChat.innerHTML = fullscreenIcon;
-            }
-        };
-        
         // Обработчик кнопки переключения полноэкранного режима на главном экране
         const fullscreenToggle = document.getElementById('fullscreen-toggle');
         if (fullscreenToggle && tg.version && parseFloat(tg.version) >= 8.0) {
@@ -516,13 +526,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (fullscreenToggleChat) {
             // Если API не поддерживает полноэкранный режим, скрываем кнопку
             fullscreenToggleChat.style.display = 'none';
-        }
-        
-        // Обновляем иконки при изменении полноэкранного режима
-        if (tg.version && parseFloat(tg.version) >= 8.0) {
-            tg.onEvent('fullscreenChanged', (isFullscreen) => {
-                updateFullscreenIcons(isFullscreen);
-            });
         }
         
         // Обработчик изменения размера окна
@@ -561,6 +564,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Добавляем класс для обозначения загруженного приложения
     document.body.classList.add('app-loaded');
+    
+    // Обновляем иконки полноэкранного режима при запуске
+    if (tg.version && parseFloat(tg.version) >= 8.0) {
+        updateFullscreenIcons(tg.isFullscreen);
+    }
     
     // Сообщаем Telegram, что приложение готово
     tg.ready();
