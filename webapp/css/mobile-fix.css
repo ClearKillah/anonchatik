@@ -334,3 +334,29 @@ body {
         padding-bottom: calc(10px + var(--safe-area-bottom));
     }
 }
+
+/* Стили для клавиатуры */
+body.keyboard-visible .input-area {
+    position: fixed;
+}
+
+/* Дополнительные стили для мобильных устройств */
+@media (max-width: 767px) {
+    #chat-screen {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-header {
+        position: fixed;
+    }
+    
+    .messages {
+        margin-top: 50px;
+        padding-bottom: 70px;
+    }
+    
+    .input-area {
+        position: fixed;
+    }
+} 

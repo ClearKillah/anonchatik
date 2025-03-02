@@ -17,18 +17,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const messages = document.getElementById('messages');
     const messageInput = document.getElementById('message-input');
     const sendMessageBtn = document.getElementById('send-message-btn');
+    const inputArea = document.querySelector('.input-area');
 
     // Состояние приложения
     let currentScreen = startScreen;
     let socket;
     let userId = null;
     let chatId = null;
+    let isKeyboardVisible = false;
+    let viewportHeight = window.innerHeight;
 
     // Функция для переключения экранов
     function showScreen(screen) {
         currentScreen.classList.remove('active');
         screen.classList.add('active');
         currentScreen = screen;
+        
+        // Если переключаемся на экран чата, прокручиваем сообщения вниз
+        if (screen === chatScreen) {
+            setTimeout(() => {
+                messages.scrollTop = messages.scrollHeight;
+            }, 100);
+        }
     }
 
     // Функция для создания элемента сообщения
@@ -72,6 +82,30 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Очищаем поле ввода
         messageInput.value = '';
+        
+        // Фокусируемся на поле ввода снова
+        messageInput.focus();
+    }
+
+    // Обработка изменения размера окна и появления клавиатуры
+    function handleResize() {
+        const newHeight = window.innerHeight;
+        
+        // Определяем, появилась ли клавиатура (для мобильных устройств)
+        if (newHeight < viewportHeight) {
+            isKeyboardVisible = true;
+            document.body.classList.add('keyboard-visible');
+            
+            // Прокручиваем к последнему сообщению с задержкой
+            setTimeout(() => {
+                messages.scrollTop = messages.scrollHeight;
+            }, 100);
+        } else {
+            isKeyboardVisible = false;
+            document.body.classList.remove('keyboard-visible');
+        }
+        
+        viewportHeight = newHeight;
     }
 
     // Инициализация соединения с сервером
@@ -209,20 +243,52 @@ document.addEventListener('DOMContentLoaded', () => {
         // Отправка сообщения по нажатию Enter
         messageInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
+                event.preventDefault();
                 sendMessage();
             }
         });
+
+        // Обработка фокуса на поле ввода
+        messageInput.addEventListener('focus', () => {
+            // Прокручиваем к последнему сообщению с задержкой
+            setTimeout(() => {
+                messages.scrollTop = messages.scrollHeight;
+            }, 300);
+        });
+
+        // Обработка изменения размера окна
+        window.addEventListener('resize', handleResize);
 
         // Обработка взаимодействия с Telegram Mini App
         tg.onEvent('viewportChanged', () => {
             // Обновляем высоту экрана при изменении размера окна
             document.body.style.height = `${tg.viewportHeight}px`;
+            
+            // Прокручиваем к последнему сообщению с задержкой
+            if (currentScreen === chatScreen) {
+                setTimeout(() => {
+                    messages.scrollTop = messages.scrollHeight;
+                }, 100);
+            }
+        });
+        
+        // Обработка изменения ориентации устройства
+        window.addEventListener('orientationchange', () => {
+            // Прокручиваем к последнему сообщению с задержкой
+            setTimeout(() => {
+                if (currentScreen === chatScreen) {
+                    messages.scrollTop = messages.scrollHeight;
+                }
+            }, 300);
         });
     }
 
     // Инициализация приложения
     initializeSocket();
     initializeEventListeners();
+    
+    // Устанавливаем начальную высоту viewport
+    viewportHeight = window.innerHeight;
 
     // Уведомляем Telegram, что приложение готово
     tg.ready();

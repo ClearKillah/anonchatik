@@ -2,7 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
     <title>Anonymous Chat</title>
     <link rel="stylesheet" href="css/style.css">
     <!-- Telegram Mini App API -->
@@ -35,7 +38,7 @@
             </div>
             <div id="messages" class="messages"></div>
             <div class="input-area">
-                <input type="text" id="message-input" placeholder="Введите сообщение..." autocomplete="off">
+                <input type="text" id="message-input" placeholder="Введите сообщение..." autocomplete="off" autocapitalize="sentences">
                 <button id="send-message-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
