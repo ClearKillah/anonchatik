@@ -22,6 +22,8 @@
     --app-height: 100vh;
     --keyboard-height: 0px;
     --viewport-offset: 0px;
+    --header-height: 60px;
+    --input-area-height: 60px;
 }
 
 /* Адаптация к темной теме Telegram */
@@ -66,6 +68,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
+    opacity: 0.95; /* Начальная прозрачность для плавного появления */
 }
 
 .container {
@@ -231,25 +234,29 @@ body {
 #chat-screen {
     padding: 0;
     justify-content: flex-start;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    padding-top: calc(12px + var(--safe-area-inset-top));
-    background-color: var(--primary-color);
-    color: white;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
-    height: auto;
-    min-height: 56px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc(10px + var(--safe-area-inset-top)) 15px 10px;
+    background-color: var(--primary-color);
+    color: white;
+    z-index: 10;
+    height: calc(var(--header-height) + var(--safe-area-inset-top));
+    box-shadow: 0 2px 5px var(--shadow-color);
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .chat-header h2 {
@@ -308,24 +315,19 @@ body {
 
 .messages {
     flex: 1;
-    width: 100%;
-    padding: 10px 16px;
-    padding-top: calc(56px + var(--safe-area-inset-top) + 10px);
-    padding-bottom: calc(70px + var(--safe-area-inset-bottom));
     overflow-y: auto;
+    padding: calc(var(--header-height) + var(--safe-area-inset-top) + 10px) 10px calc(var(--input-area-height) + var(--safe-area-inset-bottom) + 10px);
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-    overscroll-behavior-y: contain;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--bg-color);
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23e0e0e0' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 8px;
+    overscroll-behavior: contain;
 }
 
 .message {
@@ -452,21 +454,20 @@ body.dark-theme .message.sent {
 }
 
 .input-area {
-    display: flex;
-    align-items: center;
-    padding: 8px 10px;
-    padding-bottom: calc(8px + var(--safe-area-inset-bottom));
-    background-color: var(--bg-color);
-    border-top: 1px solid var(--border-color);
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 100;
-    min-height: 60px;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px calc(10px + var(--safe-area-inset-bottom));
+    background-color: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+    z-index: 10;
+    height: calc(var(--input-area-height) + var(--safe-area-inset-bottom));
+    transform: translateZ(0);
     will-change: transform;
     transition: transform 0.2s ease-out;
-    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.05);
 }
 
 #message-input {
@@ -662,11 +663,12 @@ body.input-focused .input-area {
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
     transform: translateZ(0);
     padding-bottom: 10px; /* Убираем отступ при открытой клавиатуре */
+    transition: bottom 0.2s ease-out;
 }
 
 body.keyboard-visible .messages,
 body.input-focused .messages {
-    padding-bottom: calc(70px + 10px);
+    padding-bottom: calc(var(--input-area-height) + 10px);
 }
 
 /* Исправление для клавиатуры на мобильных устройствах */
@@ -689,6 +691,7 @@ body.ios-device {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 body.ios-device .input-area {
@@ -697,6 +700,7 @@ body.ios-device .input-area {
     bottom: 0;
     transform: translateZ(0);
     z-index: 1000;
+    transition: bottom 0.2s ease-out;
 }
 
 body.ios-device.keyboard-visible .input-area {
@@ -713,17 +717,18 @@ body.ios-device .messages {
     bottom: 0;
     left: 0;
     right: 0;
-    padding-bottom: calc(70px + var(--safe-area-inset-bottom));
+    padding-bottom: calc(var(--input-area-height) + var(--safe-area-inset-bottom));
 }
 
 body.ios-device.keyboard-visible .messages {
     /* Корректируем область сообщений при открытой клавиатуре */
-    padding-bottom: calc(70px + 10px);
+    padding-bottom: calc(var(--input-area-height) + 10px);
 }
 
 /* Дополнительные стили для Telegram Mini App */
 .tg-app {
-    background-color: var(--bg-color);
+    background-color: var(--tg-theme-bg-color, var(--bg-color));
+    color: var(--tg-theme-text-color, var(--text-color));
 }
 
 /* Анимация для плавного появления элементов */
@@ -781,4 +786,10 @@ body.dark-theme .input-area {
     background-color: #1f1f1f;
     border-top-color: #444;
     box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Класс для загруженного приложения */
+body.app-loaded {
+    opacity: 1;
+    transition: opacity 0.3s ease-in;
 } 
