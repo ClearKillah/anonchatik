@@ -68,8 +68,8 @@
 
 3. Добавьте переменные окружения в проекте Railway:
    - `NODE_ENV` = production
-   - `BOT_TOKEN` = ваш_токен_бота
-   - `WEBAPP_URL` = https://ваш-проект.up.railway.app (URL вашего приложения на Railway)
+   - `BOT_TOKEN` = 8039344227:AAEDCP_902a3r52JIdM9REqUyPx-p2IVtxA
+   - `WEBAPP_URL` = https://anonchatik-production.up.railway.app (URL вашего приложения на Railway)
 
 4. Railway автоматически обнаружит `Procfile` и запустит ваше приложение
 
