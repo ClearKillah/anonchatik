@@ -87,6 +87,17 @@ body {
     max-width: 300px;
 }
 
+.status-message {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: var(--primary-color);
+    max-width: 300px;
+    padding: 8px 15px;
+    background-color: rgba(42, 171, 238, 0.1);
+    border-radius: 8px;
+}
+
 .primary-btn {
     background-color: var(--primary-color);
     color: white;

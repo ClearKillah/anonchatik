@@ -78,23 +78,27 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeSocket() {
         // Получаем хост из текущего URL
         const host = window.location.origin;
+        console.log('Connecting to server at:', host);
         socket = io(host);
 
         // Обработка регистрации пользователя
         socket.on('connect', () => {
-            console.log('Connected to server');
+            console.log('Connected to server with socket ID:', socket.id);
             
             // Получаем ID пользователя из параметров запроса или из Telegram Mini App
             let telegramId = null;
             if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
                 telegramId = tg.initDataUnsafe.user.id;
+                console.log('Got Telegram ID from Mini App:', telegramId);
             } else {
                 // Пытаемся получить ID из URL
                 const urlParams = new URLSearchParams(window.location.search);
                 telegramId = urlParams.get('id');
+                console.log('Got Telegram ID from URL:', telegramId);
             }
             
             // Регистрируем пользователя
+            console.log('Registering user with ID:', telegramId);
             socket.emit('register', { userId: telegramId });
         });
 
@@ -102,6 +106,12 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('registered', (data) => {
             userId = data.userId;
             console.log('Registered with ID:', userId);
+            
+            // Добавляем системное сообщение на стартовом экране
+            const statusMessage = document.getElementById('status-message');
+            if (statusMessage) {
+                statusMessage.textContent = 'Вы подключены к серверу. Нажмите кнопку "Найти собеседника", чтобы начать чат.';
+            }
         });
 
         // Обработка статуса чата
@@ -110,6 +120,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.status === 'waiting') {
                 showScreen(waitingScreen);
+                
+                // Обновляем сообщение о поиске
+                const waitingMessage = document.getElementById('waiting-message');
+                if (waitingMessage) {
+                    waitingMessage.textContent = data.message;
+                }
             }
         });
 
