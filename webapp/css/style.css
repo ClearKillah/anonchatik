@@ -10,7 +10,6 @@
     --shadow-color: rgba(0, 0, 0, 0.1);
     --message-received-bg: #f0f0f0;
     --message-sent-bg: #e3f2fd;
-    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Адаптация к темной теме Telegram */
@@ -32,22 +31,13 @@ body.dark-theme {
     box-sizing: border-box;
 }
 
-html {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-}
-
 body {
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s, color 0.3s;
     overflow: hidden;
-    height: 100%;
-    width: 100%;
-    position: fixed;
-    -webkit-overflow-scrolling: touch;
+    height: 100vh;
 }
 
 .container {
@@ -55,8 +45,6 @@ body {
     height: 100%;
     overflow: hidden;
     position: relative;
-    display: flex;
-    flex-direction: column;
 }
 
 /* Экраны приложения */
@@ -67,20 +55,10 @@ body {
     justify-content: center;
     padding: 20px;
     height: 100%;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    opacity: 0;
-    transform: translateY(20px);
-    overflow: hidden;
 }
 
 .screen.active {
     display: flex;
-    opacity: 1;
-    transform: translateY(0);
 }
 
 /* Стартовый экран */
@@ -109,24 +87,6 @@ body {
     max-width: 300px;
 }
 
-.status-message {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: var(--primary-color);
-    max-width: 300px;
-    padding: 8px 15px;
-    background-color: rgba(42, 171, 238, 0.1);
-    border-radius: 8px;
-}
-
-#find-partner-form {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin: 10px 0;
-}
-
 .primary-btn {
     background-color: var(--primary-color);
     color: white;
@@ -136,62 +96,16 @@ body {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s;
     box-shadow: 0 2px 6px var(--shadow-color);
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    outline: none;
-    position: relative;
-    overflow: hidden;
-    min-height: 44px;
-    min-width: 180px;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 10px 0;
-}
-
-.primary-btn:disabled {
-    opacity: 0.7;
-    background-color: #1e8ac7;
-    cursor: default;
 }
 
 .primary-btn:hover {
     background-color: #229de1;
 }
 
-.primary-btn:active, .primary-btn.btn-active {
+.primary-btn:active {
     transform: translateY(1px);
-    background-color: #1e8ac7;
-    box-shadow: 0 1px 3px var(--shadow-color);
-}
-
-/* Добавляем эффект пульсации при касании */
-.primary-btn::after {
-    content: '';
-    display: block;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 10%, transparent 10.01%);
-    background-repeat: no-repeat;
-    background-position: 50%;
-    transform: scale(10, 10);
-    opacity: 0;
-    transition: transform 0.5s, opacity 0.5s;
-}
-
-.primary-btn:active::after, .primary-btn.btn-active::after {
-    transform: scale(0, 0);
-    opacity: 0.3;
-    transition: 0s;
 }
 
 /* Экран ожидания */
@@ -212,12 +126,6 @@ body {
 }
 
 /* Экран чата */
-#chat-screen {
-    padding: 0;
-    justify-content: flex-start;
-    display: flex;
-}
-
 .chat-header {
     width: 100%;
     display: flex;
@@ -226,13 +134,11 @@ body {
     padding: 10px 20px;
     background-color: var(--primary-color);
     color: white;
-    position: sticky;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     z-index: 10;
-    min-height: 50px;
-    flex-shrink: 0;
 }
 
 .skip-btn {
@@ -244,7 +150,6 @@ body {
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.2s;
-    -webkit-tap-highlight-color: transparent;
 }
 
 .skip-btn:hover {
@@ -254,12 +159,10 @@ body {
 .messages {
     flex: 1;
     width: 100%;
-    padding: 10px 10px 20px;
+    padding: 70px 10px 80px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
 }
 
 .message {
@@ -296,15 +199,11 @@ body {
     padding: 10px;
     background-color: var(--bg-color);
     border-top: 1px solid var(--border-color);
-    position: sticky;
+    position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 10;
-    width: 100%;
-    padding-bottom: calc(10px + var(--safe-area-bottom));
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
 }
 
 #message-input {
@@ -316,8 +215,6 @@ body {
     font-size: 16px;
     background-color: var(--input-bg);
     color: var(--text-color);
-    -webkit-appearance: none;
-    appearance: none;
 }
 
 #send-message-btn {
@@ -332,8 +229,6 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    flex-shrink: 0;
 }
 
 #send-message-btn svg {
@@ -345,7 +240,7 @@ body {
 /* Системные сообщения */
 .system-message {
     align-self: center;
-    background-color: rgba(42, 171, 238, 0.1);
+    background-color: rgba(var(--primary-color-rgb, 42, 171, 238), 0.1);
     color: var(--primary-color);
     padding: 8px 15px;
     border-radius: 12px;
@@ -378,42 +273,4 @@ body {
 
 .message {
     animation: fadeIn 0.2s ease-out;
-}
-
-/* Стили для iOS Safari */
-@supports (-webkit-touch-callout: none) {
-    .input-area {
-        padding-bottom: calc(10px + var(--safe-area-bottom));
-    }
-}
-
-/* Стили для клавиатуры */
-body.keyboard-visible .input-area {
-    position: fixed;
-}
-
-/* Дополнительные стили для мобильных устройств */
-@media (max-width: 767px) {
-    #chat-screen {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .chat-header {
-        position: fixed;
-    }
-    
-    .messages {
-        margin-top: 50px;
-        padding-bottom: 70px;
-    }
-    
-    .input-area {
-        position: fixed;
-    }
-    
-    /* Улучшенные стили для кнопок на мобильных устройствах */
-    .primary-btn, .skip-btn, #send-message-btn {
-        min-height: 44px; /* Минимальная высота для удобного нажатия */
-    }
-}
+} 

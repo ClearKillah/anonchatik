@@ -12,33 +12,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const startScreen = document.getElementById('start-screen');
     const waitingScreen = document.getElementById('waiting-screen');
     const chatScreen = document.getElementById('chat-screen');
-    const findPartnerForm = document.getElementById('find-partner-form');
+    const findPartnerBtn = document.getElementById('find-partner-btn');
     const skipPartnerBtn = document.getElementById('skip-partner-btn');
     const messages = document.getElementById('messages');
     const messageInput = document.getElementById('message-input');
     const sendMessageBtn = document.getElementById('send-message-btn');
-    const inputArea = document.querySelector('.input-area');
 
     // Состояние приложения
     let currentScreen = startScreen;
     let socket;
     let userId = null;
     let chatId = null;
-    let isKeyboardVisible = false;
-    let viewportHeight = window.innerHeight;
 
     // Функция для переключения экранов
     function showScreen(screen) {
         currentScreen.classList.remove('active');
         screen.classList.add('active');
         currentScreen = screen;
-        
-        // Если переключаемся на экран чата, прокручиваем сообщения вниз
-        if (screen === chatScreen) {
-            setTimeout(() => {
-                messages.scrollTop = messages.scrollHeight;
-            }, 100);
-        }
     }
 
     // Функция для создания элемента сообщения
@@ -82,90 +72,29 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Очищаем поле ввода
         messageInput.value = '';
-        
-        // Фокусируемся на поле ввода снова
-        messageInput.focus();
-    }
-
-    // Обработка изменения размера окна и появления клавиатуры
-    function handleResize() {
-        const newHeight = window.innerHeight;
-        
-        // Определяем, появилась ли клавиатура (для мобильных устройств)
-        if (newHeight < viewportHeight) {
-            isKeyboardVisible = true;
-            document.body.classList.add('keyboard-visible');
-            
-            // Прокручиваем к последнему сообщению с задержкой
-            setTimeout(() => {
-                messages.scrollTop = messages.scrollHeight;
-            }, 100);
-        } else {
-            isKeyboardVisible = false;
-            document.body.classList.remove('keyboard-visible');
-        }
-        
-        viewportHeight = newHeight;
     }
 
     // Инициализация соединения с сервером
     function initializeSocket() {
         // Получаем хост из текущего URL
         const host = window.location.origin;
-        console.log('Connecting to server at:', host);
-        
-        // Закрываем существующее соединение, если оно есть
-        if (socket) {
-            console.log('Closing existing socket connection');
-            socket.close();
-        }
-        
-        // Создаем новое соединение с улучшенными опциями для автоматического переподключения
-        socket = io(host, {
-            reconnection: true,
-            reconnectionAttempts: 10,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            timeout: 20000,
-            forceNew: true,
-            transports: ['websocket', 'polling']
-        });
-
-        // Добавляем дополнительное логирование соединения
-        socket.on('connecting', () => {
-            console.log('Socket connecting...');
-        });
+        socket = io(host);
 
         // Обработка регистрации пользователя
         socket.on('connect', () => {
-            console.log('Connected to server with socket ID:', socket.id);
-            
-            // Обновляем статусное сообщение
-            const statusMessage = document.getElementById('status-message');
-            if (statusMessage) {
-                statusMessage.textContent = 'Подключение к серверу установлено...';
-            }
+            console.log('Connected to server');
             
             // Получаем ID пользователя из параметров запроса или из Telegram Mini App
             let telegramId = null;
             if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
                 telegramId = tg.initDataUnsafe.user.id;
-                console.log('Got Telegram ID from Mini App:', telegramId);
             } else {
                 // Пытаемся получить ID из URL
                 const urlParams = new URLSearchParams(window.location.search);
                 telegramId = urlParams.get('id');
-                console.log('Got Telegram ID from URL:', telegramId);
-            }
-            
-            // Если ID не найден, генерируем временный
-            if (!telegramId) {
-                telegramId = 'temp_' + Math.floor(Math.random() * 1000000);
-                console.log('Generated temporary ID:', telegramId);
             }
             
             // Регистрируем пользователя
-            console.log('Registering user with ID:', telegramId);
             socket.emit('register', { userId: telegramId });
         });
 
@@ -173,12 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('registered', (data) => {
             userId = data.userId;
             console.log('Registered with ID:', userId);
-            
-            // Добавляем системное сообщение на стартовом экране
-            const statusMessage = document.getElementById('status-message');
-            if (statusMessage) {
-                statusMessage.textContent = 'Вы подключены к серверу. Нажмите кнопку "Найти собеседника", чтобы начать чат.';
-            }
         });
 
         // Обработка статуса чата
@@ -187,12 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.status === 'waiting') {
                 showScreen(waitingScreen);
-                
-                // Обновляем сообщение о поиске
-                const waitingMessage = document.getElementById('waiting-message');
-                if (waitingMessage) {
-                    waitingMessage.textContent = data.message;
-                }
             }
         });
 
@@ -206,41 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Добавляем системное сообщение
             messages.appendChild(createSystemMessage(data.message));
             messages.scrollTop = messages.scrollHeight;
-        });
-
-        // Дополнительное отслеживание событий socket.io для отладки
-        socket.io.on("error", (error) => {
-            console.error("Socket.io error:", error);
-        });
-
-        socket.io.on("reconnect_attempt", (attempt) => {
-            console.log("Socket.io reconnection attempt:", attempt);
-        });
-
-        socket.io.on("reconnect", (attempt) => {
-            console.log("Socket.io reconnected after", attempt, "attempts");
-            
-            // После успешного переподключения повторно регистрируем пользователя
-            let telegramId = null;
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                telegramId = tg.initDataUnsafe.user.id;
-            } else {
-                const urlParams = new URLSearchParams(window.location.search);
-                telegramId = urlParams.get('id');
-            }
-            
-            if (telegramId) {
-                console.log('Re-registering user after reconnection:', telegramId);
-                socket.emit('register', { userId: telegramId });
-            }
-        });
-
-        socket.io.on("reconnect_error", (error) => {
-            console.error("Socket.io reconnection error:", error);
-        });
-
-        socket.io.on("reconnect_failed", () => {
-            console.error("Socket.io reconnection failed");
         });
 
         // Получение сообщения
@@ -281,108 +163,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2000);
         });
 
-        // Обработка ошибок соединения
-        socket.on('connect_error', (error) => {
-            console.error('Connection error:', error);
-            
-            // Обновляем статусное сообщение
-            const statusMessage = document.getElementById('status-message');
-            if (statusMessage) {
-                statusMessage.textContent = 'Ошибка подключения к серверу. Пытаемся переподключиться...';
-            }
-        });
-
-        // Обработка ошибок сервера
+        // Обработка ошибок
         socket.on('error', (data) => {
-            console.error('Server error:', data);
-            if (data.message) {
-                alert(data.message);
-            }
+            console.error('Error:', data);
+            alert(data.message);
         });
 
         // Обработка отключения
-        socket.on('disconnect', (reason) => {
-            console.log('Disconnected from server. Reason:', reason);
-            
-            // Обновляем статусное сообщение
-            const statusMessage = document.getElementById('status-message');
-            if (statusMessage && currentScreen === startScreen) {
-                statusMessage.textContent = 'Соединение с сервером потеряно. Пытаемся переподключиться...';
-            }
-            
-            // Если пользователь был в чате, показываем сообщение
-            if (currentScreen === chatScreen) {
-                messages.appendChild(createSystemMessage('Соединение с сервером потеряно. Пытаемся переподключиться...'));
-                messages.scrollTop = messages.scrollHeight;
-            }
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
         });
     }
 
     // Инициализация обработчиков событий
     function initializeEventListeners() {
-        // Простой обработчик для формы поиска собеседника
-        findPartnerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log('Form submit detected');
-            
-            // Получаем кнопку
-            const findPartnerBtn = findPartnerForm.querySelector('button');
-            
-            // Визуальная обратная связь
-            findPartnerBtn.disabled = true;
-            findPartnerBtn.textContent = 'Подключение...';
-            
-            // Проверяем соединение
-            if (!socket || !socket.connected) {
-                console.log('Socket not connected, reconnecting...');
-                
-                // Показываем статус
-                const statusMessage = document.getElementById('status-message');
-                if (statusMessage) {
-                    statusMessage.textContent = 'Переподключение к серверу...';
-                }
-                
-                // Пересоздаем соединение
-                initializeSocket();
-                
-                // Пробуем снова через 2 секунды
-                setTimeout(() => {
-                    if (socket && socket.connected) {
-                        console.log('Socket reconnected, finding partner');
-                        socket.emit('findPartner');
-                        showScreen(waitingScreen);
-                    } else {
-                        console.error('Failed to reconnect');
-                        alert('Не удалось подключиться к серверу');
-                    }
-                    
-                    // Восстанавливаем кнопку
-                    findPartnerBtn.disabled = false;
-                    findPartnerBtn.textContent = 'Найти собеседника';
-                }, 2000);
-                
-                return;
-            }
-            
-            // Если соединение есть, отправляем запрос
-            try {
-                console.log('Emitting findPartner event, socket ID:', socket.id);
-                socket.emit('findPartner');
-                showScreen(waitingScreen);
-                
-                // Восстанавливаем кнопку через 1 секунду
-                setTimeout(() => {
-                    findPartnerBtn.disabled = false;
-                    findPartnerBtn.textContent = 'Найти собеседника';
-                }, 1000);
-            } catch (error) {
-                console.error('Error finding partner:', error);
-                alert('Произошла ошибка при поиске собеседника');
-                
-                // Восстанавливаем кнопку
-                findPartnerBtn.disabled = false;
-                findPartnerBtn.textContent = 'Найти собеседника';
-            }
+        // Кнопка поиска собеседника
+        findPartnerBtn.addEventListener('click', () => {
+            socket.emit('findPartner');
         });
 
         // Кнопка пропуска собеседника
@@ -396,52 +193,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Отправка сообщения по нажатию Enter
         messageInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault();
                 sendMessage();
             }
         });
-
-        // Обработка фокуса на поле ввода
-        messageInput.addEventListener('focus', () => {
-            // Прокручиваем к последнему сообщению с задержкой
-            setTimeout(() => {
-                messages.scrollTop = messages.scrollHeight;
-            }, 300);
-        });
-
-        // Обработка изменения размера окна
-        window.addEventListener('resize', handleResize);
 
         // Обработка взаимодействия с Telegram Mini App
         tg.onEvent('viewportChanged', () => {
             // Обновляем высоту экрана при изменении размера окна
             document.body.style.height = `${tg.viewportHeight}px`;
-            
-            // Прокручиваем к последнему сообщению с задержкой
-            if (currentScreen === chatScreen) {
-                setTimeout(() => {
-                    messages.scrollTop = messages.scrollHeight;
-                }, 100);
-            }
-        });
-        
-        // Обработка изменения ориентации устройства
-        window.addEventListener('orientationchange', () => {
-            // Прокручиваем к последнему сообщению с задержкой
-            setTimeout(() => {
-                if (currentScreen === chatScreen) {
-                    messages.scrollTop = messages.scrollHeight;
-                }
-            }, 300);
         });
     }
 
     // Инициализация приложения
     initializeSocket();
     initializeEventListeners();
-    
-    // Устанавливаем начальную высоту viewport
-    viewportHeight = window.innerHeight;
 
     // Уведомляем Telegram, что приложение готово
     tg.ready();
