@@ -6,10 +6,41 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#2AABEE">
+    <meta name="color-scheme" content="light dark">
     <title>Anonymous Chat</title>
     <link rel="stylesheet" href="css/style.css">
     <!-- Telegram Mini App API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Fix для проблем с обработкой касаний в Telegram WebApp
+        window.addEventListener('load', function() {
+            document.addEventListener('click', function(e) {
+                console.log('Document click detected on:', e.target);
+            });
+            
+            // Обходное решение для Telegram WebApp на iOS
+            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                document.documentElement.style.cursor = 'pointer';
+                document.querySelector('body').style.cursor = 'pointer';
+                
+                console.log('iOS device detected, applying WebApp fixes');
+                
+                // Применяем специальные стили для iOS
+                const style = document.createElement('style');
+                style.textContent = `
+                    body * {
+                        cursor: pointer;
+                        -webkit-tap-highlight-color: transparent;
+                    }
+                    .primary-btn {
+                        cursor: pointer !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -21,7 +52,7 @@
             </div>
             <p class="description">Общайтесь анонимно с случайными людьми прямо в Telegram!</p>
             <p id="status-message" class="status-message">Подключение к серверу...</p>
-            <button id="find-partner-btn" class="primary-btn" type="button" aria-label="Найти собеседника" onclick="document.dispatchEvent(new CustomEvent('find-partner-click'));">Найти собеседника</button>
+            <button id="find-partner-btn" class="primary-btn" type="button" data-action="find-partner">Найти собеседника</button>
         </div>
 
         <!-- Экран ожидания -->

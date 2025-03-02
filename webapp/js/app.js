@@ -320,103 +320,139 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Инициализация обработчиков событий
     function initializeEventListeners() {
-        // Обработчик кастомного события для кнопки поиска собеседника
-        document.addEventListener('find-partner-click', function() {
-            console.log('Custom find-partner-click event received');
+        // Создаем единый надежный обработчик нажатия на кнопку поиска собеседника
+        const findPartnerButton = document.getElementById('find-partner-btn');
+        
+        // Удаляем существующие обработчики, чтобы избежать конфликтов
+        findPartnerButton.removeEventListener('click', null);
+        
+        // Функция поиска собеседника - выделяем в отдельную функцию для повторного использования
+        function startFindingPartner() {
+            console.log('Starting partner search');
             
-            // Проверяем, установлено ли соединение
+            // Добавляем визуальную обратную связь
+            findPartnerButton.classList.add('btn-active');
+            findPartnerButton.disabled = true;
+            findPartnerButton.textContent = 'Подключение...';
+            
             if (!socket || !socket.connected) {
-                console.error('Socket not connected in custom event handler');
+                console.warn('Socket disconnected, attempting to reconnect...');
                 
-                // Переподключаемся и пробуем снова
-                initializeSocket();
-                
-                setTimeout(() => {
-                    if (socket && socket.connected) {
-                        socket.emit('findPartner');
-                        showScreen(waitingScreen);
-                    } else {
-                        alert('Не удается установить соединение с сервером');
-                    }
-                }, 1000);
-                
-                return;
-            }
-            
-            // Вызываем поиск собеседника
-            console.log('Custom event handler: emitting findPartner');
-            socket.emit('findPartner');
-            showScreen(waitingScreen);
-        });
-
-        // Кнопка поиска собеседника
-        findPartnerBtn.addEventListener('click', () => {
-            console.log('Find partner button clicked');
-            
-            // Дополнительное логирование для отладки
-            console.log('Socket status:', {
-                exists: !!socket,
-                connected: socket?.connected,
-                id: socket?.id
-            });
-            
-            // Проверяем, установлено ли соединение
-            if (!socket || !socket.connected) {
-                console.error('Socket not connected');
-                
-                // Показываем сообщение пользователю
+                // Обновляем статус
                 const statusMessage = document.getElementById('status-message');
                 if (statusMessage) {
                     statusMessage.textContent = 'Переподключение к серверу...';
                 }
                 
-                // Пытаемся переподключиться
-                if (socket) {
-                    socket.connect();
-                } else {
-                    initializeSocket();
-                }
+                // Пересоздаем сокет соединение
+                initializeSocket();
                 
-                // Пробуем отправить запрос через 1 секунду
+                // Ждем установки соединения
                 setTimeout(() => {
                     if (socket && socket.connected) {
-                        console.log('Retrying findPartner after reconnection');
+                        console.log('Connection restored, finding partner');
+                        
+                        // Отправляем запрос на поиск собеседника
                         socket.emit('findPartner');
                         
                         // Показываем экран ожидания
                         showScreen(waitingScreen);
+                        
+                        // Восстанавливаем кнопку через 1 секунду
+                        setTimeout(() => {
+                            findPartnerButton.classList.remove('btn-active');
+                            findPartnerButton.disabled = false;
+                            findPartnerButton.textContent = 'Найти собеседника';
+                        }, 1000);
                     } else {
-                        alert('Не удалось подключиться к серверу. Пожалуйста, перезагрузите приложение.');
+                        console.error('Failed to establish connection');
+                        alert('Не удалось подключиться к серверу. Попробуйте перезагрузить приложение.');
+                        
+                        // Восстанавливаем кнопку
+                        findPartnerButton.classList.remove('btn-active');
+                        findPartnerButton.disabled = false;
+                        findPartnerButton.textContent = 'Найти собеседника';
                     }
-                }, 1000);
+                }, 2000);
                 
                 return;
             }
             
-            // Добавляем визуальное подтверждение нажатия
-            findPartnerBtn.classList.add('btn-active');
-            setTimeout(() => {
-                findPartnerBtn.classList.remove('btn-active');
-            }, 200);
-            
-            // Если соединение установлено, отправляем запрос на поиск собеседника
             try {
+                // Отправляем запрос на поиск собеседника
                 console.log('Emitting findPartner event');
                 socket.emit('findPartner');
                 
-                // Показываем экран ожидания сразу
+                // Показываем экран ожидания
                 showScreen(waitingScreen);
                 
-                // Обновляем сообщение о поиске
+                // Обновляем сообщение об ожидании
                 const waitingMessage = document.getElementById('waiting-message');
                 if (waitingMessage) {
                     waitingMessage.textContent = 'Поиск собеседника...';
                 }
+                
+                // Восстанавливаем кнопку через 1 секунду
+                setTimeout(() => {
+                    findPartnerButton.classList.remove('btn-active');
+                    findPartnerButton.disabled = false;
+                    findPartnerButton.textContent = 'Найти собеседника';
+                }, 1000);
             } catch (error) {
-                console.error('Error when emitting findPartner:', error);
-                alert('Произошла ошибка при поиске собеседника. Пожалуйста, попробуйте снова.');
+                console.error('Error finding partner:', error);
+                alert('Произошла ошибка при поиске собеседника. Попробуйте еще раз.');
+                
+                // Восстанавливаем кнопку
+                findPartnerButton.classList.remove('btn-active');
+                findPartnerButton.disabled = false;
+                findPartnerButton.textContent = 'Найти собеседника';
             }
+        }
+        
+        // Добавляем обработчики для разных типов событий, чтобы обеспечить максимальную совместимость
+        
+        // 1. События touch для мобильных устройств (наиболее важные)
+        findPartnerButton.addEventListener('touchstart', function(e) {
+            console.log('Touch start detected');
+            // Предотвращаем стандартное поведение и всплытие
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
+        
+        findPartnerButton.addEventListener('touchend', function(e) {
+            console.log('Touch end detected');
+            // Предотвращаем стандартное поведение и всплытие
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Запускаем поиск собеседника
+            startFindingPartner();
+        }, { passive: false });
+        
+        // 2. Стандартный клик для десктопных браузеров (запасной вариант)
+        findPartnerButton.addEventListener('click', function(e) {
+            console.log('Click detected');
+            // Предотвращаем стандартное поведение и всплытие
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Запускаем поиск собеседника
+            startFindingPartner();
         });
+        
+        // 3. Нативный обработчик, добавленный напрямую (дополнительная страховка)
+        findPartnerButton.onclick = function(e) {
+            console.log('Native onclick detected');
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            // Запускаем поиск собеседника
+            startFindingPartner();
+            
+            return false;
+        };
 
         // Кнопка пропуска собеседника
         skipPartnerBtn.addEventListener('click', () => {
@@ -476,37 +512,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // Устанавливаем начальную высоту viewport
     viewportHeight = window.innerHeight;
 
-    // Принудительно добавляем обработчик события клика напрямую для решения возможных проблем с делегированием
-    document.getElementById('find-partner-btn').onclick = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        console.log('Direct click handler activated');
+    // Добавляем глобальный обработчик кликов для делегирования событий
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
         
-        if (!socket || !socket.connected) {
-            console.error('Socket not connected in direct handler');
+        const action = target.getAttribute('data-action');
+        console.log('Global click handler detected action:', action);
+        
+        // Обрабатываем клик на кнопку поиска собеседника
+        if (action === 'find-partner') {
+            console.log('Global click handler: find-partner action triggered');
             
-            // Переподключаемся и пробуем снова
-            initializeSocket();
-            
-            setTimeout(() => {
-                if (socket && socket.connected) {
+            // Вызываем функцию поиска собеседника
+            const findPartnerBtn = document.getElementById('find-partner-btn');
+            if (findPartnerBtn) {
+                // Симулируем клик на кнопку
+                findPartnerBtn.click();
+            } else {
+                // Прямая обработка, если кнопка не найдена
+                if (!socket || !socket.connected) {
+                    initializeSocket();
+                    setTimeout(() => {
+                        if (socket && socket.connected) {
+                            socket.emit('findPartner');
+                            showScreen(waitingScreen);
+                        }
+                    }, 1500);
+                } else {
                     socket.emit('findPartner');
                     showScreen(waitingScreen);
-                } else {
-                    alert('Не удается установить соединение с сервером');
                 }
-            }, 1000);
-            
-            return false;
+            }
         }
-        
-        // Вызываем поиск собеседника
-        console.log('Direct handler: emitting findPartner');
-        socket.emit('findPartner');
-        showScreen(waitingScreen);
-        
-        return false;
-    };
+    });
 
     // Уведомляем Telegram, что приложение готово
     tg.ready();
