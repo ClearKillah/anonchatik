@@ -6,6 +6,36 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     tg.enableClosingConfirmation();
     
+    // Переключаем в полноэкранный режим, если API поддерживает это
+    if (tg.version && parseFloat(tg.version) >= 8.0) {
+        // Запрашиваем полноэкранный режим
+        tg.requestFullscreen();
+        
+        // Обработчик события изменения полноэкранного режима
+        tg.onEvent('fullscreenChanged', (isFullscreen) => {
+            console.log('Fullscreen mode changed:', isFullscreen);
+            document.body.classList.toggle('fullscreen-mode', isFullscreen);
+            
+            // Обновляем высоту viewport при изменении режима
+            updateViewportHeight();
+        });
+        
+        // Обработчик события неудачного перехода в полноэкранный режим
+        tg.onEvent('fullscreenFailed', (error) => {
+            console.error('Failed to enter fullscreen mode:', error);
+        });
+        
+        // Обработчик события изменения безопасной области
+        tg.onEvent('safeAreaChanged', () => {
+            updateViewportHeight();
+        });
+        
+        // Обработчик события изменения безопасной области контента
+        tg.onEvent('contentSafeAreaChanged', () => {
+            updateViewportHeight();
+        });
+    }
+    
     // Определяем платформу
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -40,6 +70,23 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Устанавливаем отступ для безопасной зоны
         document.documentElement.style.setProperty('--safe-area-inset-bottom', `${tg.viewportStableHeight - tg.viewportHeight}px`);
+        
+        // Устанавливаем безопасные области для полноэкранного режима, если доступны
+        if (tg.isFullscreen) {
+            if (tg.safeAreaInset) {
+                document.documentElement.style.setProperty('--safe-area-inset-top', `${tg.safeAreaInset.top}px`);
+                document.documentElement.style.setProperty('--safe-area-inset-bottom', `${tg.safeAreaInset.bottom}px`);
+                document.documentElement.style.setProperty('--safe-area-inset-left', `${tg.safeAreaInset.left}px`);
+                document.documentElement.style.setProperty('--safe-area-inset-right', `${tg.safeAreaInset.right}px`);
+            }
+            
+            if (tg.contentSafeAreaInset) {
+                document.documentElement.style.setProperty('--content-safe-area-inset-top', `${tg.contentSafeAreaInset.top}px`);
+                document.documentElement.style.setProperty('--content-safe-area-inset-bottom', `${tg.contentSafeAreaInset.bottom}px`);
+                document.documentElement.style.setProperty('--content-safe-area-inset-left', `${tg.contentSafeAreaInset.left}px`);
+                document.documentElement.style.setProperty('--content-safe-area-inset-right', `${tg.contentSafeAreaInset.right}px`);
+            }
+        }
     };
     
     updateViewportHeight();
@@ -412,6 +459,71 @@ document.addEventListener('DOMContentLoaded', () => {
         messageInput.addEventListener('blur', () => {
             document.body.classList.remove('input-focused');
         });
+        
+        // Функция для переключения полноэкранного режима
+        const toggleFullscreen = () => {
+            if (tg.isFullscreen) {
+                // Если уже в полноэкранном режиме, выходим из него
+                tg.exitFullscreen();
+                
+                // Обновляем иконки на всех кнопках
+                updateFullscreenIcons(false);
+            } else {
+                // Если не в полноэкранном режиме, входим в него
+                tg.requestFullscreen();
+                
+                // Обновляем иконки на всех кнопках
+                updateFullscreenIcons(true);
+            }
+        };
+        
+        // Функция для обновления иконок на кнопках полноэкранного режима
+        const updateFullscreenIcons = (isFullscreen) => {
+            const fullscreenIcon = isFullscreen ? 
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+                </svg>` : 
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                </svg>`;
+            
+            // Обновляем иконку на главном экране
+            const fullscreenToggle = document.getElementById('fullscreen-toggle');
+            if (fullscreenToggle) {
+                fullscreenToggle.innerHTML = fullscreenIcon;
+            }
+            
+            // Обновляем иконку в чате
+            const fullscreenToggleChat = document.getElementById('fullscreen-toggle-chat');
+            if (fullscreenToggleChat) {
+                fullscreenToggleChat.innerHTML = fullscreenIcon;
+            }
+        };
+        
+        // Обработчик кнопки переключения полноэкранного режима на главном экране
+        const fullscreenToggle = document.getElementById('fullscreen-toggle');
+        if (fullscreenToggle && tg.version && parseFloat(tg.version) >= 8.0) {
+            fullscreenToggle.addEventListener('click', toggleFullscreen);
+        } else if (fullscreenToggle) {
+            // Если API не поддерживает полноэкранный режим, скрываем кнопку
+            fullscreenToggle.style.display = 'none';
+        }
+        
+        // Обработчик кнопки переключения полноэкранного режима в чате
+        const fullscreenToggleChat = document.getElementById('fullscreen-toggle-chat');
+        if (fullscreenToggleChat && tg.version && parseFloat(tg.version) >= 8.0) {
+            fullscreenToggleChat.addEventListener('click', toggleFullscreen);
+        } else if (fullscreenToggleChat) {
+            // Если API не поддерживает полноэкранный режим, скрываем кнопку
+            fullscreenToggleChat.style.display = 'none';
+        }
+        
+        // Обновляем иконки при изменении полноэкранного режима
+        if (tg.version && parseFloat(tg.version) >= 8.0) {
+            tg.onEvent('fullscreenChanged', (isFullscreen) => {
+                updateFullscreenIcons(isFullscreen);
+            });
+        }
         
         // Обработчик изменения размера окна
         window.addEventListener('resize', handleResize);

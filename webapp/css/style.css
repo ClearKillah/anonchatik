@@ -12,6 +12,12 @@
     --message-sent-bg: #e3f2fd;
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --content-safe-area-inset-top: 0px;
+    --content-safe-area-inset-bottom: 0px;
+    --content-safe-area-inset-left: 0px;
+    --content-safe-area-inset-right: 0px;
     --tg-theme-bg-color: var(--bg-color);
     --tg-theme-text-color: var(--text-color);
     --tg-theme-hint-color: #999;
@@ -792,4 +798,140 @@ body.dark-theme .input-area {
 body.app-loaded {
     opacity: 1;
     transition: opacity 0.3s ease-in;
+}
+
+/* Стили для полноэкранного режима */
+body.fullscreen-mode {
+    padding: var(--safe-area-inset-top) var(--safe-area-inset-right) var(--safe-area-inset-bottom) var(--safe-area-inset-left);
+}
+
+body.fullscreen-mode .container {
+    padding: var(--content-safe-area-inset-top) var(--content-safe-area-inset-right) var(--content-safe-area-inset-bottom) var(--content-safe-area-inset-left);
+}
+
+body.fullscreen-mode .chat-header {
+    top: var(--safe-area-inset-top);
+    left: var(--safe-area-inset-left);
+    right: var(--safe-area-inset-right);
+    height: calc(var(--header-height) + var(--content-safe-area-inset-top));
+    padding-top: calc(10px + var(--content-safe-area-inset-top));
+}
+
+body.fullscreen-mode .input-area {
+    bottom: var(--safe-area-inset-bottom);
+    left: var(--safe-area-inset-left);
+    right: var(--safe-area-inset-right);
+    padding-bottom: calc(10px + var(--content-safe-area-inset-bottom));
+}
+
+body.fullscreen-mode .messages {
+    padding-top: calc(var(--header-height) + var(--content-safe-area-inset-top) + 10px);
+    padding-bottom: calc(var(--input-area-height) + var(--content-safe-area-inset-bottom) + 10px);
+    padding-left: calc(10px + var(--content-safe-area-inset-left));
+    padding-right: calc(10px + var(--content-safe-area-inset-right));
+}
+
+/* Кнопка переключения полноэкранного режима */
+.fullscreen-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.fullscreen-toggle svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+}
+
+.fullscreen-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.fullscreen-toggle:active {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Стили для альбомной ориентации в полноэкранном режиме */
+@media (orientation: landscape) {
+    body.fullscreen-mode .chat-header {
+        height: calc(50px + var(--content-safe-area-inset-top));
+    }
+    
+    body.fullscreen-mode .messages {
+        padding-top: calc(50px + var(--content-safe-area-inset-top) + 10px);
+    }
+    
+    body.fullscreen-mode .input-area {
+        height: calc(50px + var(--content-safe-area-inset-bottom));
+    }
+}
+
+/* Стили для клавиатуры в полноэкранном режиме */
+body.fullscreen-mode.keyboard-visible .input-area,
+body.fullscreen-mode.input-focused .input-area {
+    bottom: var(--viewport-offset, 0);
+    padding-bottom: 10px;
+}
+
+body.fullscreen-mode.keyboard-visible .messages,
+body.fullscreen-mode.input-focused .messages {
+    padding-bottom: calc(var(--input-area-height) + 10px);
+}
+
+/* Специальные стили для iOS в полноэкранном режиме */
+body.ios-device.fullscreen-mode .input-area {
+    bottom: var(--safe-area-inset-bottom);
+}
+
+body.ios-device.fullscreen-mode.keyboard-visible .input-area {
+    bottom: var(--viewport-offset, 0);
+}
+
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fullscreen-toggle-chat {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    touch-action: manipulation;
+}
+
+.fullscreen-toggle-chat svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+}
+
+.fullscreen-toggle-chat:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.fullscreen-toggle-chat:active {
+    background-color: rgba(255, 255, 255, 0.4);
+    transform: scale(0.95);
 } 
