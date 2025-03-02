@@ -52,7 +52,9 @@
             </div>
             <p class="description">Общайтесь анонимно с случайными людьми прямо в Telegram!</p>
             <p id="status-message" class="status-message">Подключение к серверу...</p>
-            <button id="find-partner-btn" class="primary-btn" type="button" data-action="find-partner" role="button" aria-label="Найти собеседника" tabindex="0" onclick="console.log('Inline click handler'); window.findPartnerInline && window.findPartnerInline();">Найти собеседника</button>
+            <form id="find-partner-form" onsubmit="return false;">
+                <button id="find-partner-btn" class="primary-btn" type="submit">Найти собеседника</button>
+            </form>
         </div>
 
         <!-- Экран ожидания -->

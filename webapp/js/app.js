@@ -3,35 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
     tg.expand(); // Раскрываем приложение на всю высоту
 
-    // Глобальная функция для обработки встроенного обработчика события
-    window.findPartnerInline = function() {
-        console.log('Global findPartnerInline function called');
-        const socket = window.socket;
-        
-        if (!socket || !socket.connected) {
-            console.log('Socket not connected in inline handler');
-            alert('Соединение с сервером отсутствует. Пожалуйста, подождите...');
-            return;
-        }
-        
-        try {
-            console.log('Emitting findPartner from inline handler');
-            socket.emit('findPartner');
-            
-            // Показываем экран ожидания
-            const startScreen = document.getElementById('start-screen');
-            const waitingScreen = document.getElementById('waiting-screen');
-            
-            if (startScreen && waitingScreen) {
-                startScreen.classList.remove('active');
-                waitingScreen.classList.add('active');
-            }
-        } catch (error) {
-            console.error('Error in inline handler:', error);
-            alert('Произошла ошибка при поиске собеседника');
-        }
-    };
-
     // Применяем цветовую схему от Telegram
     if (tg.colorScheme === 'dark') {
         document.body.classList.add('dark-theme');
@@ -41,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startScreen = document.getElementById('start-screen');
     const waitingScreen = document.getElementById('waiting-screen');
     const chatScreen = document.getElementById('chat-screen');
-    const findPartnerBtn = document.getElementById('find-partner-btn');
+    const findPartnerForm = document.getElementById('find-partner-form');
     const skipPartnerBtn = document.getElementById('skip-partner-btn');
     const messages = document.getElementById('messages');
     const messageInput = document.getElementById('message-input');
@@ -159,9 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
             forceNew: true,
             transports: ['websocket', 'polling']
         });
-        
-        // Делаем сокет глобальным для доступа из встроенных обработчиков
-        window.socket = socket;
 
         // Добавляем дополнительное логирование соединения
         socket.on('connecting', () => {
@@ -352,21 +320,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Инициализация обработчиков событий
     function initializeEventListeners() {
-        // Получаем кнопку поиска собеседника
-        const findPartnerButton = document.getElementById('find-partner-btn');
-        
-        // Удаляем все существующие обработчики
-        const newButton = findPartnerButton.cloneNode(true);
-        findPartnerButton.parentNode.replaceChild(newButton, findPartnerButton);
-        
-        // Создаем простую функцию для поиска собеседника
-        function findPartner() {
-            console.log('Find partner function called');
+        // Простой обработчик для формы поиска собеседника
+        findPartnerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submit detected');
+            
+            // Получаем кнопку
+            const findPartnerBtn = findPartnerForm.querySelector('button');
             
             // Визуальная обратная связь
-            newButton.classList.add('btn-active');
-            newButton.disabled = true;
-            newButton.textContent = 'Подключение...';
+            findPartnerBtn.disabled = true;
+            findPartnerBtn.textContent = 'Подключение...';
             
             // Проверяем соединение
             if (!socket || !socket.connected) {
@@ -393,9 +357,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     // Восстанавливаем кнопку
-                    newButton.classList.remove('btn-active');
-                    newButton.disabled = false;
-                    newButton.textContent = 'Найти собеседника';
+                    findPartnerBtn.disabled = false;
+                    findPartnerBtn.textContent = 'Найти собеседника';
                 }, 2000);
                 
                 return;
@@ -409,44 +372,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Восстанавливаем кнопку через 1 секунду
                 setTimeout(() => {
-                    newButton.classList.remove('btn-active');
-                    newButton.disabled = false;
-                    newButton.textContent = 'Найти собеседника';
+                    findPartnerBtn.disabled = false;
+                    findPartnerBtn.textContent = 'Найти собеседника';
                 }, 1000);
             } catch (error) {
                 console.error('Error finding partner:', error);
                 alert('Произошла ошибка при поиске собеседника');
                 
                 // Восстанавливаем кнопку
-                newButton.classList.remove('btn-active');
-                newButton.disabled = false;
-                newButton.textContent = 'Найти собеседника';
+                findPartnerBtn.disabled = false;
+                findPartnerBtn.textContent = 'Найти собеседника';
             }
-        }
-        
-        // Используем Telegram WebApp API для обработки нажатия
-        if (tg && tg.MainButton) {
-            console.log('Using Telegram MainButton for handling');
-            
-            // Настраиваем главную кнопку Telegram
-            tg.MainButton.setText('Найти собеседника');
-            tg.MainButton.show();
-            tg.MainButton.onClick(findPartner);
-            
-            // Также добавляем обычный обработчик для страховки
-            newButton.addEventListener('click', findPartner);
-        } else {
-            console.log('Using direct click handler');
-            
-            // Добавляем прямой обработчик клика
-            newButton.addEventListener('click', findPartner);
-            
-            // Для мобильных устройств добавляем обработчик touchend
-            newButton.addEventListener('touchend', function(e) {
-                e.preventDefault();
-                findPartner();
-            });
-        }
+        });
 
         // Кнопка пропуска собеседника
         skipPartnerBtn.addEventListener('click', () => {
@@ -505,70 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Устанавливаем начальную высоту viewport
     viewportHeight = window.innerHeight;
-
-    // Добавляем глобальный обработчик кликов для делегирования событий
-    document.addEventListener('click', function(e) {
-        console.log('Document click detected on element:', e.target);
-        
-        const target = e.target.closest('[data-action]');
-        if (!target) return;
-        
-        const action = target.getAttribute('data-action');
-        console.log('Global click handler detected action:', action);
-        
-        // Обрабатываем клик на кнопку поиска собеседника
-        if (action === 'find-partner') {
-            console.log('Global click handler: find-partner action triggered');
-            
-            // Вызываем функцию поиска собеседника
-            const findPartnerBtn = document.getElementById('find-partner-btn');
-            if (findPartnerBtn) {
-                // Симулируем клик на кнопку
-                console.log('Simulating click on find-partner button');
-                findPartnerBtn.click();
-            } else {
-                // Прямая обработка, если кнопка не найдена
-                console.log('Button not found, direct handling');
-                if (!socket || !socket.connected) {
-                    initializeSocket();
-                    setTimeout(() => {
-                        if (socket && socket.connected) {
-                            socket.emit('findPartner');
-                            showScreen(waitingScreen);
-                        }
-                    }, 1500);
-                } else {
-                    socket.emit('findPartner');
-                    showScreen(waitingScreen);
-                }
-            }
-        }
-    });
-
-    // Проверяем, что кнопка существует и добавляем прямой обработчик
-    const directButton = document.getElementById('find-partner-btn');
-    if (directButton) {
-        console.log('Adding direct handler to find-partner button');
-        directButton.addEventListener('click', function(e) {
-            console.log('Direct button click detected');
-            if (!socket || !socket.connected) {
-                console.log('Socket not connected in direct handler');
-                initializeSocket();
-                setTimeout(() => {
-                    if (socket && socket.connected) {
-                        socket.emit('findPartner');
-                        showScreen(waitingScreen);
-                    }
-                }, 1500);
-            } else {
-                console.log('Socket connected, emitting findPartner');
-                socket.emit('findPartner');
-                showScreen(waitingScreen);
-            }
-        });
-    } else {
-        console.error('Find partner button not found for direct handler');
-    }
 
     // Уведомляем Telegram, что приложение готово
     tg.ready();
