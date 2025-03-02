@@ -4,41 +4,44 @@ import styled from 'styled-components';
 const InputArea = styled.div`
   display: flex;
   align-items: center;
-  padding: 8px 10px;
-  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-  background-color: #1f1f1f;
-  border-top: 1px solid #444;
+  padding: 10px 12px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  background-color: #1A1A1A;
+  border-top: 1px solid #333;
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  min-height: 60px;
+  min-height: 64px;
   will-change: transform;
   transition: transform 0.2s ease-out;
-  box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 `;
 
 const Input = styled.input`
   flex: 1;
-  padding: 10px 15px;
+  padding: 12px 16px;
   border: 1px solid #444;
-  border-radius: 20px;
+  border-radius: 24px;
   outline: none;
   font-size: 16px;
-  background-color: #333;
+  background-color: #2A2A2A;
   color: #f5f5f5;
-  min-height: 40px;
+  min-height: 44px;
   resize: none;
   -webkit-appearance: none;
   appearance: none;
   z-index: 2;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) inset;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset;
+  transition: all 0.2s ease;
   
   &:focus {
     border-color: #2AABEE;
-    box-shadow: 0 1px 3px rgba(42, 171, 238, 0.2) inset;
+    box-shadow: 0 1px 3px rgba(42, 171, 238, 0.2) inset, 0 0 0 1px rgba(42, 171, 238, 0.1);
+    background-color: #333;
   }
   
   &::placeholder {
@@ -52,22 +55,28 @@ const SendButton = styled.button`
   color: white;
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
   margin-left: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   touch-action: manipulation;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #1e9ad8;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25);
+  }
   
   &:active {
     background-color: #1e8ac7;
     transform: scale(0.95);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
   
   svg {
@@ -75,6 +84,7 @@ const SendButton = styled.button`
     width: 20px;
     height: 20px;
     transform: rotate(45deg) translateX(-1px);
+    filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.1));
   }
 `;
 
@@ -103,8 +113,9 @@ const MessageInput = ({ onSendMessage }) => {
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyPress={handleKeyPress}
+        autoComplete="off"
       />
-      <SendButton onClick={handleSend}>
+      <SendButton onClick={handleSend} aria-label="Отправить сообщение">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
           <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
         </svg>
