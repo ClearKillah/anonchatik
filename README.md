@@ -1,6 +1,77 @@
-# AnonChatik - Анонимный чат в Telegram
+# Anonchatik - Анонимный чат для Telegram
 
-Проект анонимного чата для Telegram с использованием Telegram Mini App. Пользователи могут искать случайных собеседников для анонимного общения.
+Анонимный чат для общения с незнакомцами прямо в Telegram. Приложение разработано как Telegram Mini App и позволяет пользователям находить случайных собеседников для анонимного общения.
+
+## Особенности
+
+- Анонимный чат с случайными собеседниками
+- Интеграция с Telegram Mini App
+- Современный интерфейс в стиле Telegram
+- Возможность пропуска собеседника
+- Автоматический поиск нового собеседника
+- Адаптивный дизайн для мобильных устройств
+
+## Технологии
+
+- **Frontend**: React, Styled Components
+- **Backend**: Node.js, Express
+- **Realtime**: Socket.IO
+- **Deployment**: Railway
+
+## Установка и запуск
+
+### Локальная разработка
+
+1. Клонируйте репозиторий:
+   ```
+   git clone https://github.com/yourusername/anonchatik.git
+   cd anonchatik
+   ```
+
+2. Установите зависимости для серверной части:
+   ```
+   npm install
+   ```
+
+3. Установите зависимости для клиентской части:
+   ```
+   cd react-client
+   npm install
+   cd ..
+   ```
+
+4. Запустите приложение в режиме разработки:
+   ```
+   npm run dev
+   ```
+
+5. Откройте [http://localhost:3000](http://localhost:3000) в браузере.
+
+### Деплой на Railway
+
+1. Создайте новый проект на [Railway](https://railway.app/)
+
+2. Подключите ваш GitHub репозиторий
+
+3. Railway автоматически определит конфигурацию и запустит приложение
+
+## Структура проекта
+
+```
+anonchatik/
+├── react-client/           # React приложение
+│   ├── public/             # Публичные файлы
+│   └── src/                # Исходный код React
+│       ├── components/     # React компоненты
+│       └── hooks/          # React хуки
+├── server.js               # Серверная часть приложения
+├── package.json            # Зависимости проекта
+└── railway.json            # Конфигурация для Railway
+```
+
+## Лицензия
+
+ISC
 
 ## Возможности
 
@@ -8,74 +79,6 @@
 - Общение через интерфейс Telegram Mini App
 - Возможность пропустить текущего собеседника и найти нового
 - Настройка на стороне сервера
-
-## Технологии
-
-- **Backend**: Node.js, Express
-- **Database**: SQLite с Sequelize ORM
-- **Real-time**: Socket.IO
-- **Telegram Bot**: Telegraf.js
-- **Frontend**: HTML, CSS, JavaScript, Telegram Mini App API
-
-## Локальная установка
-
-### Требования
-
-- Node.js 16+
-- npm или yarn
-
-### Шаги установки
-
-1. Клонировать репозиторий
-   ```bash
-   git clone https://github.com/ваш-github/anonchatik.git
-   cd anonchatik
-   ```
-
-2. Установить зависимости
-   ```bash
-   npm install
-   ```
-
-3. Создать .env файл на основе .env.example и заполнить переменные окружения:
-   ```
-   PORT=3000
-   NODE_ENV=development
-   BOT_TOKEN=ваш_токен_бота
-   WEBAPP_URL=http://localhost:3000
-   ```
-
-4. Запустить сервер
-   ```bash
-   npm start
-   ```
-
-## Деплой на Railway
-
-### Подготовка
-
-1. Создайте аккаунт на [Railway](https://railway.app/)
-2. Установите [Railway CLI](https://docs.railway.app/develop/cli) (опционально)
-3. Создайте бота в Telegram через [BotFather](https://t.me/botfather) и получите токен
-
-### Шаги деплоя
-
-1. Создайте новый проект на Railway:
-   - Через веб-интерфейс: Нажмите "New Project" и выберите "Deploy from GitHub repo"
-   - Через CLI: `railway init`
-
-2. Подключите ваш GitHub репозиторий к проекту
-
-3. Добавьте переменные окружения в проекте Railway:
-   - `NODE_ENV` = production
-   - `BOT_TOKEN` = 8039344227:AAEDCP_902a3r52JIdM9REqUyPx-p2IVtxA
-   - `WEBAPP_URL` = https://anonchatik-production.up.railway.app (URL вашего приложения на Railway)
-
-4. Railway автоматически обнаружит `Procfile` и запустит ваше приложение
-
-5. После успешного деплоя, обновите настройки вашего бота в BotFather:
-   - Установите команды бота: `/setcommands`
-   - Настройте веб-приложение: `/setmenubutton`
 
 ## База данных
 
