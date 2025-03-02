@@ -1,0 +1,90 @@
+/* Основные стили для контейнера чата */
+.chat-container {
+  max-width: 100%;
+  height: 100vh;
+  margin: 0 auto;
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Заголовок чата */
+.chat-header {
+  padding: 15px;
+  font-size: 18px;
+  text-align: center;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Контейнер для сообщений */
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+/* Отдельное сообщение */
+.message {
+  max-width: 80%;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 15px;
+  word-wrap: break-word;
+}
+
+/* Поле ввода и кнопка отправки */
+.input-container {
+  display: flex;
+  padding: 10px;
+  background-color: #f0f0f0;
+}
+
+.input-container input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  margin-right: 10px;
+}
+
+.input-container button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  background-color: #007bff;
+  color: white;
+}
+
+/* Медиа-запросы для адаптации под мобильные устройства */
+@media (max-width: 480px) {
+  .chat-container {
+    padding: 5px;
+  }
+  
+  .chat-header {
+    font-size: 16px;
+    padding: 10px;
+  }
+  
+  .message {
+    max-width: 90%;
+    font-size: 14px;
+  }
+  
+  .input-container {
+    padding: 8px;
+  }
+  
+  .input-container input {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .input-container button {
+    padding: 8px 15px;
+    font-size: 14px;
+  }
+} 
