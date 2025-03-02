@@ -11,12 +11,17 @@
     --message-received-bg: #f0f0f0;
     --message-sent-bg: #e3f2fd;
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
     --tg-theme-bg-color: var(--bg-color);
     --tg-theme-text-color: var(--text-color);
     --tg-theme-hint-color: #999;
     --tg-theme-link-color: var(--primary-color);
     --tg-theme-button-color: var(--primary-color);
     --tg-theme-button-text-color: #fff;
+    --vh: 1vh;
+    --app-height: 100vh;
+    --keyboard-height: 0px;
+    --viewport-offset: 0px;
 }
 
 /* Адаптация к темной теме Telegram */
@@ -39,20 +44,28 @@ body.dark-theme {
     -webkit-tap-highlight-color: transparent;
 }
 
+html {
+    height: 100%;
+    height: -webkit-fill-available;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s, color 0.3s;
     overflow: hidden;
-    height: 100vh;
-    height: calc(var(--tg-viewport-height, 100vh));
+    height: 100vh; /* Fallback */
+    height: calc(var(--vh, 1vh) * 100);
+    height: var(--app-height);
+    height: -webkit-fill-available;
     width: 100vw;
     position: fixed;
     top: 0;
     left: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
 }
 
 .container {
@@ -217,14 +230,16 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
+    padding-top: calc(12px + var(--safe-area-inset-top));
     background-color: var(--primary-color);
     color: white;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10;
-    height: 56px;
+    z-index: 100;
+    height: auto;
+    min-height: 56px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -257,7 +272,9 @@ body {
 .messages {
     flex: 1;
     width: 100%;
-    padding: 64px 10px 70px;
+    padding: 10px;
+    padding-top: calc(56px + var(--safe-area-inset-top) + 10px);
+    padding-bottom: calc(70px + var(--safe-area-inset-bottom));
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -265,6 +282,11 @@ body {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     overscroll-behavior-y: contain;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .message {
@@ -305,17 +327,19 @@ body {
 .input-area {
     display: flex;
     align-items: center;
-    padding: 10px 10px calc(10px + var(--safe-area-inset-bottom));
+    padding: 10px;
+    padding-bottom: calc(10px + var(--safe-area-inset-bottom));
     background-color: var(--bg-color);
     border-top: 1px solid var(--border-color);
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 10;
+    z-index: 100;
     min-height: 60px;
     will-change: transform;
     transition: transform 0.2s ease-out;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
 }
 
 #message-input {
@@ -407,7 +431,7 @@ body {
 body.keyboard-visible .input-area,
 body.input-focused .input-area {
     position: fixed;
-    bottom: 0;
+    bottom: var(--viewport-offset, 0);
     left: 0;
     right: 0;
     background-color: var(--bg-color);
@@ -417,60 +441,61 @@ body.input-focused .input-area {
     padding-bottom: 10px; /* Убираем отступ при открытой клавиатуре */
 }
 
-body.keyboard-visible #chat-screen,
-body.input-focused #chat-screen {
-    padding-bottom: 70px;
-}
-
 body.keyboard-visible .messages,
 body.input-focused .messages {
-    padding-bottom: 80px;
+    padding-bottom: calc(70px + 10px);
 }
 
 /* Исправление для клавиатуры на мобильных устройствах */
 @media (max-height: 450px) {
     .chat-header {
-        position: static;
+        position: fixed;
         height: auto;
+        min-height: calc(46px + var(--safe-area-inset-top));
     }
     
     .messages {
-        padding-top: 10px;
-        padding-bottom: 60px;
-    }
-    
-    body.keyboard-visible .input-area,
-    body.input-focused .input-area {
-        position: fixed;
-        bottom: 0;
+        padding-top: calc(46px + var(--safe-area-inset-top) + 10px);
     }
 }
 
 /* Специальные стили для iOS */
-@supports (-webkit-touch-callout: none) {
-    body {
-        /* Исправление для iOS Safari */
-        height: -webkit-fill-available;
-    }
-    
-    .input-area {
-        /* Учитываем нижнюю панель на iOS */
-        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-    }
-    
-    /* Дополнительные исправления для iOS с клавиатурой */
-    body.keyboard-visible .input-area,
-    body.input-focused .input-area {
-        padding-bottom: 10px; /* Убираем отступ при открытой клавиатуре */
-        transform: translateZ(0); /* Предотвращаем баги с рендерингом */
-    }
-    
-    /* Исправление для iPhone с "челкой" */
-    @supports (padding-bottom: env(safe-area-inset-bottom)) {
-        body:not(.keyboard-visible):not(.input-focused) .input-area {
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
-        }
-    }
+body.ios-device {
+    /* Исправления для iOS */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body.ios-device .input-area {
+    /* Предотвращаем скрытие под клавиатурой на iOS */
+    position: fixed;
+    bottom: 0;
+    transform: translateZ(0);
+    z-index: 1000;
+}
+
+body.ios-device.keyboard-visible .input-area {
+    /* Когда клавиатура видна на iOS */
+    bottom: var(--viewport-offset, 0);
+    padding-bottom: 10px;
+}
+
+body.ios-device .messages {
+    /* Корректируем область сообщений для iOS */
+    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding-bottom: calc(70px + var(--safe-area-inset-bottom));
+}
+
+body.ios-device.keyboard-visible .messages {
+    /* Корректируем область сообщений при открытой клавиатуре */
+    padding-bottom: calc(70px + 10px);
 }
 
 /* Дополнительные стили для Telegram Mini App */
@@ -484,14 +509,22 @@ body.input-focused .messages {
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* Стили для адаптации к iPhone с "челкой" */
+/* Стили для iPhone с "челкой" */
 @supports (padding-top: env(safe-area-inset-top)) {
     .chat-header {
         padding-top: calc(12px + env(safe-area-inset-top, 0px));
-        height: calc(56px + env(safe-area-inset-top, 0px));
+        min-height: calc(56px + env(safe-area-inset-top, 0px));
     }
     
     .messages {
-        padding-top: calc(64px + env(safe-area-inset-top, 0px));
+        padding-top: calc(56px + env(safe-area-inset-top, 0px) + 10px);
+    }
+    
+    .input-area {
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+    
+    body.keyboard-visible .input-area {
+        padding-bottom: 10px;
     }
 } 

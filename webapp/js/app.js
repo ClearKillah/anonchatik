@@ -17,10 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
         tg.setBackgroundColor('#f5f5f5');
     }
 
-    // Устанавливаем переменную CSS для высоты viewport
+    // Устанавливаем переменные CSS для высоты viewport
     const updateViewportHeight = () => {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
         document.documentElement.style.setProperty('--tg-viewport-height', `${tg.viewportHeight}px`);
         document.documentElement.style.setProperty('--tg-viewport-stable-height', `${tg.viewportStableHeight}px`);
+        
+        // Устанавливаем высоту для iOS Safari
+        document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
     };
     
     updateViewportHeight();
@@ -53,27 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (screen === chatScreen) {
             setTimeout(() => {
                 scrollMessagesToBottom();
-                // Показываем кнопку "Главное меню" в Telegram
-                tg.BackButton.show();
             }, 100);
-        } else {
-            // Скрываем кнопку "Главное меню" на других экранах
-            tg.BackButton.hide();
         }
     }
-
-    // Обработка нажатия на кнопку "Назад" в Telegram
-    tg.BackButton.onClick(() => {
-        if (currentScreen === chatScreen) {
-            // Показываем диалог подтверждения
-            tg.showConfirm('Вы действительно хотите завершить чат?', (confirmed) => {
-                if (confirmed) {
-                    // Если пользователь подтвердил, завершаем чат
-                    socket.emit('skipPartner');
-                }
-            });
-        }
-    });
 
     // Функция для прокрутки сообщений вниз
     function scrollMessagesToBottom() {
@@ -127,28 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Прокручиваем сообщения вниз
         setTimeout(scrollMessagesToBottom, 50);
-        
-        // Вибрация при отправке сообщения
-        if (tg.HapticFeedback) {
-            tg.HapticFeedback.impactOccurred('light');
-        }
-    }
-
-    // Функция для прокрутки к полю ввода
-    function scrollToInputField() {
-        if (currentScreen === chatScreen) {
-            // Прокручиваем к полю ввода
-            setTimeout(() => {
-                // Используем scrollIntoView с параметром false для прокрутки к нижней части элемента
-                messageInput.scrollIntoView({ block: 'end', behavior: 'smooth' });
-                
-                // Дополнительная прокрутка для iOS
-                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                    // На iOS может потребоваться дополнительная прокрутка
-                    window.scrollTo(0, document.body.scrollHeight);
-                }
-            }, 100);
-        }
     }
 
     // Обработка изменения размера окна и видимости клавиатуры
@@ -158,23 +123,69 @@ document.addEventListener('DOMContentLoaded', () => {
         // Определяем, видима ли клавиатура (для мобильных устройств)
         const wasKeyboardVisible = isKeyboardVisible;
         
-        // Используем viewportHeight и viewportStableHeight для определения видимости клавиатуры
-        isKeyboardVisible = tg.viewportHeight < tg.viewportStableHeight * 0.8;
+        // Используем несколько методов для определения видимости клавиатуры
+        const windowHeight = window.innerHeight;
+        const viewportHeight = tg.viewportHeight;
+        const viewportStableHeight = tg.viewportStableHeight;
+        
+        // Для iOS используем visualViewport API если доступен
+        if (window.visualViewport) {
+            isKeyboardVisible = window.innerHeight > window.visualViewport.height * 1.15;
+        } else {
+            // Запасной вариант для других устройств
+            isKeyboardVisible = viewportStableHeight > viewportHeight * 1.15 || 
+                               window.screen.height > windowHeight * 1.15;
+        }
         
         // Если клавиатура появилась или исчезла, обновляем интерфейс
         if (wasKeyboardVisible !== isKeyboardVisible) {
-            if (currentScreen === chatScreen) {
-                if (isKeyboardVisible) {
-                    // Клавиатура появилась - прокручиваем к полю ввода
-                    document.body.classList.add('keyboard-visible');
-                    // Прокручиваем к полю ввода
-                    scrollToInputField();
-                } else {
-                    // Клавиатура скрыта
-                    document.body.classList.remove('keyboard-visible');
-                    setTimeout(scrollMessagesToBottom, 100);
+            if (isKeyboardVisible) {
+                // Клавиатура появилась
+                document.body.classList.add('keyboard-visible');
+                
+                // Устанавливаем высоту с учетом клавиатуры
+                if (window.visualViewport) {
+                    document.documentElement.style.setProperty(
+                        '--keyboard-height', 
+                        `${window.innerHeight - window.visualViewport.height}px`
+                    );
                 }
+                
+                // Прокручиваем к полю ввода с задержкой
+                setTimeout(scrollToInputField, 100);
+            } else {
+                // Клавиатура скрыта
+                document.body.classList.remove('keyboard-visible');
+                setTimeout(scrollMessagesToBottom, 100);
             }
+        }
+    }
+
+    // Функция для прокрутки к полю ввода
+    function scrollToInputField() {
+        if (currentScreen === chatScreen) {
+            // Прокручиваем к полю ввода
+            setTimeout(() => {
+                // Фокусируемся на поле ввода
+                messageInput.focus();
+                
+                // Используем scrollIntoView с параметром false для прокрутки к нижней части элемента
+                inputArea.scrollIntoView({ block: 'end', behavior: 'smooth' });
+                
+                // Дополнительная прокрутка для iOS
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    // На iOS может потребоваться дополнительная прокрутка
+                    window.scrollTo(0, document.body.scrollHeight);
+                    
+                    // Дополнительно для iOS 15+
+                    if (window.visualViewport) {
+                        const scrollOffset = window.visualViewport.offsetTop;
+                        if (scrollOffset > 0) {
+                            window.scrollBy(0, scrollOffset);
+                        }
+                    }
+                }
+            }, 300); // Увеличиваем задержку для более надежной работы
         }
     }
 
@@ -222,11 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.status === 'waiting') {
                 showScreen(waitingScreen);
-                
-                // Вибрация при начале поиска
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
             }
         });
 
@@ -240,11 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Добавляем системное сообщение
             messages.appendChild(createSystemMessage(data.message));
             scrollMessagesToBottom();
-            
-            // Вибрация при нахождении собеседника
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
-            }
         });
 
         // Получение сообщения
@@ -254,11 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Добавляем сообщение в чат
             messages.appendChild(createMessageElement(data.message, true, data.timestamp));
             scrollMessagesToBottom();
-            
-            // Вибрация при получении сообщения
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('warning');
-            }
         });
 
         // Подтверждение отправки сообщения
@@ -278,11 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
             messages.appendChild(createSystemMessage(data.message));
             scrollMessagesToBottom();
             
-            // Вибрация при завершении чата
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('error');
-            }
-            
             // Возвращаемся на начальный экран через 2 секунды
             setTimeout(() => {
                 chatId = null;
@@ -299,8 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('error', (data) => {
             console.error('Error:', data);
             if (data.message) {
-                // Используем нативный диалог Telegram вместо alert
-                tg.showAlert(data.message);
+                alert(data.message);
             }
         });
 
@@ -320,11 +310,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 findPartnerBtn.classList.remove('active');
             }, 150);
             
-            // Вибрация при нажатии на кнопку
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
-            
             // Проверяем соединение с сервером
             if (socket && socket.connected) {
                 socket.emit('findPartner');
@@ -333,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Пытаемся переподключиться
                 initializeSocket();
                 // Показываем сообщение пользователю
-                tg.showAlert('Переподключение к серверу...');
+                alert('Переподключение к серверу...');
             }
         });
 
@@ -348,17 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Кнопка пропуска собеседника
         skipPartnerBtn.addEventListener('click', () => {
-            // Вибрация при нажатии на кнопку
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
-            
-            // Показываем диалог подтверждения
-            tg.showConfirm('Вы действительно хотите пропустить собеседника?', (confirmed) => {
-                if (confirmed) {
-                    socket.emit('skipPartner');
-                }
-            });
+            socket.emit('skipPartner');
         });
 
         // Отправка сообщения
@@ -377,20 +352,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentScreen === chatScreen) {
                 // Добавляем класс для обозначения активного поля ввода
                 document.body.classList.add('input-focused');
-                // Прокручиваем к полю ввода
-                scrollToInputField();
+                
+                // Устанавливаем таймаут для iOS Safari
+                setTimeout(() => {
+                    // Прокручиваем к полю ввода
+                    scrollToInputField();
+                    
+                    // Дополнительно для iOS
+                    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                        // Устанавливаем позицию прокрутки
+                        const scrollPosition = inputArea.offsetTop - 10;
+                        window.scrollTo(0, scrollPosition);
+                    }
+                }, 300);
             }
-        });
-        
-        // Обработка потери фокуса
-        messageInput.addEventListener('blur', () => {
-            document.body.classList.remove('input-focused');
         });
 
         // Обработка взаимодействия с Telegram Mini App
         tg.onEvent('viewportChanged', () => {
             // Обновляем высоту экрана при изменении размера окна
-            updateViewportHeight();
+            document.documentElement.style.setProperty('--tg-viewport-height', `${tg.viewportHeight}px`);
             
             if (currentScreen === chatScreen) {
                 setTimeout(scrollMessagesToBottom, 100);
@@ -405,12 +386,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Дополнительные обработчики для iOS
         if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            // Добавляем класс для iOS
+            document.body.classList.add('ios-device');
+            
             // Обработка прокрутки для iOS
             document.addEventListener('touchmove', () => {
                 if (currentScreen === chatScreen && isKeyboardVisible) {
                     // Убеждаемся, что поле ввода видно
-                    setTimeout(() => {
-                        messageInput.scrollIntoView(false);
+                    clearTimeout(window.scrollTimer);
+                    window.scrollTimer = setTimeout(() => {
+                        inputArea.scrollIntoView(false);
                     }, 100);
                 }
             });
@@ -418,7 +403,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Специальная обработка для iOS Safari
             window.addEventListener('orientationchange', () => {
                 // Переориентация устройства может вызвать проблемы с клавиатурой
-                setTimeout(handleResize, 300);
+                setTimeout(() => {
+                    updateViewportHeight();
+                    handleResize();
+                    
+                    if (currentScreen === chatScreen) {
+                        if (isKeyboardVisible) {
+                            scrollToInputField();
+                        } else {
+                            scrollMessagesToBottom();
+                        }
+                    }
+                }, 300);
             });
             
             // Используем visualViewport API для более точного определения клавиатуры
@@ -426,31 +422,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.visualViewport.addEventListener('resize', () => {
                     // Изменение визуального viewport (часто связано с клавиатурой)
                     const viewportHeight = window.visualViewport.height;
-                    document.documentElement.style.setProperty('--tg-viewport-height', `${viewportHeight}px`);
+                    document.documentElement.style.setProperty('--visual-viewport-height', `${viewportHeight}px`);
                     
                     // Определяем, видима ли клавиатура
                     const wasKeyboardVisible = isKeyboardVisible;
-                    isKeyboardVisible = window.innerHeight > viewportHeight * 1.2;
+                    isKeyboardVisible = window.innerHeight > viewportHeight * 1.15;
                     
                     if (wasKeyboardVisible !== isKeyboardVisible) {
                         if (isKeyboardVisible && currentScreen === chatScreen) {
                             document.body.classList.add('keyboard-visible');
+                            
+                            // Устанавливаем высоту с учетом клавиатуры
+                            document.documentElement.style.setProperty(
+                                '--keyboard-height', 
+                                `${window.innerHeight - viewportHeight}px`
+                            );
+                            
                             setTimeout(() => {
-                                messageInput.scrollIntoView(false);
+                                inputArea.scrollIntoView(false);
                             }, 100);
                         } else {
                             document.body.classList.remove('keyboard-visible');
                         }
                     }
+                    
+                    // Обновляем положение поля ввода при изменении размера viewport
+                    if (isKeyboardVisible && currentScreen === chatScreen) {
+                        document.documentElement.style.setProperty(
+                            '--viewport-offset', 
+                            `${window.visualViewport.offsetTop}px`
+                        );
+                        
+                        // Корректируем положение поля ввода
+                        inputArea.style.bottom = `${window.visualViewport.offsetTop}px`;
+                    } else {
+                        inputArea.style.bottom = '';
+                    }
+                });
+                
+                window.visualViewport.addEventListener('scroll', () => {
+                    if (isKeyboardVisible && currentScreen === chatScreen) {
+                        // Корректируем положение поля ввода при прокрутке viewport
+                        document.documentElement.style.setProperty(
+                            '--viewport-offset', 
+                            `${window.visualViewport.offsetTop}px`
+                        );
+                        
+                        inputArea.style.bottom = `${window.visualViewport.offsetTop}px`;
+                    }
                 });
             }
         }
-        
-        // Обработка тапа по экрану (для скрытия клавиатуры)
-        messages.addEventListener('click', () => {
-            // Скрываем клавиатуру при тапе по области сообщений
-            messageInput.blur();
-        });
     }
 
     // Инициализация приложения
