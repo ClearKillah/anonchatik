@@ -293,6 +293,8 @@ body {
     right: 0;
     z-index: 10;
     min-height: 60px;
+    will-change: transform;
+    transition: transform 0.2s ease-out;
 }
 
 #message-input {
@@ -309,6 +311,7 @@ body {
     resize: none;
     -webkit-appearance: none;
     appearance: none;
+    z-index: 2;
 }
 
 #send-message-btn {
@@ -377,17 +380,27 @@ body {
     }
 }
 
-/* Исправления для iOS Safari */
-@supports (-webkit-touch-callout: none) {
-    body {
-        /* Исправление для iOS Safari */
-        height: -webkit-fill-available;
-    }
-    
-    .input-area {
-        /* Учитываем нижнюю панель на iOS */
-        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-    }
+/* Стили для обработки виртуальной клавиатуры */
+body.keyboard-visible .input-area,
+body.input-focused .input-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-color);
+    z-index: 100;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    transform: translateZ(0);
+}
+
+body.keyboard-visible #chat-screen,
+body.input-focused #chat-screen {
+    padding-bottom: 70px;
+}
+
+body.keyboard-visible .messages,
+body.input-focused .messages {
+    padding-bottom: 80px;
 }
 
 /* Исправление для клавиатуры на мобильных устройствах */
@@ -400,5 +413,38 @@ body {
     .messages {
         padding-top: 10px;
         padding-bottom: 60px;
+    }
+    
+    body.keyboard-visible .input-area,
+    body.input-focused .input-area {
+        position: fixed;
+        bottom: 0;
+    }
+}
+
+/* Специальные стили для iOS */
+@supports (-webkit-touch-callout: none) {
+    body {
+        /* Исправление для iOS Safari */
+        height: -webkit-fill-available;
+    }
+    
+    .input-area {
+        /* Учитываем нижнюю панель на iOS */
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+    
+    /* Дополнительные исправления для iOS с клавиатурой */
+    body.keyboard-visible .input-area,
+    body.input-focused .input-area {
+        padding-bottom: 10px; /* Убираем отступ при открытой клавиатуре */
+        transform: translateZ(0); /* Предотвращаем баги с рендерингом */
+    }
+    
+    /* Исправление для iPhone с "челкой" */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+        body:not(.keyboard-visible):not(.input-focused) .input-area {
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+        }
     }
 } 
