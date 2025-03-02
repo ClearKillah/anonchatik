@@ -10,6 +10,7 @@
     --shadow-color: rgba(0, 0, 0, 0.1);
     --message-received-bg: #f0f0f0;
     --message-sent-bg: #e3f2fd;
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Адаптация к темной теме Telegram */
@@ -29,22 +30,30 @@ body.dark-theme {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s, color 0.3s;
     overflow: hidden;
     height: 100vh;
+    height: calc(var(--tg-viewport-height, 100vh));
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 .container {
-    max-width: 100%;
+    width: 100%;
     height: 100%;
     overflow: hidden;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Экраны приложения */
@@ -55,10 +64,19 @@ body {
     justify-content: center;
     padding: 20px;
     height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .screen.active {
     display: flex;
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* Стартовый экран */
@@ -85,6 +103,7 @@ body {
     font-size: 16px;
     line-height: 1.5;
     max-width: 300px;
+    padding: 0 10px;
 }
 
 .primary-btn {
@@ -96,16 +115,56 @@ body {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, transform 0.1s;
     box-shadow: 0 2px 6px var(--shadow-color);
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
 }
 
 .primary-btn:hover {
     background-color: #229de1;
 }
 
-.primary-btn:active {
+.primary-btn:active, .primary-btn.active {
     transform: translateY(1px);
+    background-color: #1e8ac7;
+}
+
+/* Добавляем эффект нажатия для мобильных устройств */
+@media (hover: none) {
+    .primary-btn:active, .primary-btn.active {
+        background-color: #1e8ac7;
+    }
+    
+    /* Эффект пульсации при нажатии */
+    .primary-btn::after {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 10%, transparent 10.01%);
+        background-repeat: no-repeat;
+        background-position: 50%;
+        transform: scale(10, 10);
+        opacity: 0;
+        transition: transform 0.5s, opacity 0.5s;
+    }
+    
+    .primary-btn:active::after, .primary-btn.active::after {
+        transform: scale(0, 0);
+        opacity: 0.3;
+        transition: 0s;
+    }
 }
 
 /* Экран ожидания */
@@ -126,12 +185,17 @@ body {
 }
 
 /* Экран чата */
+#chat-screen {
+    padding: 0;
+    justify-content: flex-start;
+}
+
 .chat-header {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 12px 16px;
     background-color: var(--primary-color);
     color: white;
     position: absolute;
@@ -139,6 +203,13 @@ body {
     left: 0;
     right: 0;
     z-index: 10;
+    height: 56px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chat-header h2 {
+    font-size: 18px;
+    font-weight: 600;
 }
 
 .skip-btn {
@@ -150,28 +221,45 @@ body {
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.2s;
+    min-height: 36px;
+    touch-action: manipulation;
 }
 
 .skip-btn:hover {
     background-color: rgba(255, 255, 255, 0.3);
 }
 
+.skip-btn:active {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
 .messages {
     flex: 1;
     width: 100%;
-    padding: 70px 10px 80px;
+    padding: 64px 10px 70px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
 }
 
 .message {
     max-width: 80%;
     padding: 10px 12px;
     margin-bottom: 10px;
-    border-radius: 12px;
+    border-radius: 16px;
     word-wrap: break-word;
     position: relative;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .message.received {
@@ -196,7 +284,7 @@ body {
 .input-area {
     display: flex;
     align-items: center;
-    padding: 10px;
+    padding: 10px 10px calc(10px + var(--safe-area-inset-bottom));
     background-color: var(--bg-color);
     border-top: 1px solid var(--border-color);
     position: absolute;
@@ -204,6 +292,7 @@ body {
     left: 0;
     right: 0;
     z-index: 10;
+    min-height: 60px;
 }
 
 #message-input {
@@ -215,6 +304,11 @@ body {
     font-size: 16px;
     background-color: var(--input-bg);
     color: var(--text-color);
+    min-height: 40px;
+    max-height: 100px;
+    resize: none;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 #send-message-btn {
@@ -224,11 +318,18 @@ body {
     border-radius: 50%;
     width: 40px;
     height: 40px;
+    min-width: 40px;
     margin-left: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    touch-action: manipulation;
+}
+
+#send-message-btn:active {
+    background-color: #1e8ac7;
+    transform: scale(0.95);
 }
 
 #send-message-btn svg {
@@ -240,37 +341,64 @@ body {
 /* Системные сообщения */
 .system-message {
     align-self: center;
-    background-color: rgba(var(--primary-color-rgb, 42, 171, 238), 0.1);
+    background-color: rgba(42, 171, 238, 0.1);
     color: var(--primary-color);
     padding: 8px 15px;
     border-radius: 12px;
     font-size: 14px;
     margin: 10px 0;
     text-align: center;
+    max-width: 90%;
+    animation: fadeIn 0.3s ease-out;
 }
 
-/* Адаптивные стили для разных размеров экрана */
-@media (min-width: 768px) {
-    .container {
-        max-width: 500px;
-        margin: 0 auto;
-        border-left: 1px solid var(--border-color);
-        border-right: 1px solid var(--border-color);
+/* Медиа-запросы для адаптации к разным размерам экрана */
+@media (max-width: 360px) {
+    .logo img {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .logo h1 {
+        font-size: 24px;
+    }
+    
+    .description {
+        font-size: 14px;
+    }
+    
+    .primary-btn {
+        padding: 10px 20px;
+        font-size: 15px;
+    }
+    
+    .message {
+        max-width: 85%;
     }
 }
 
-/* Анимации */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+/* Исправления для iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    body {
+        /* Исправление для iOS Safari */
+        height: -webkit-fill-available;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    
+    .input-area {
+        /* Учитываем нижнюю панель на iOS */
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     }
 }
 
-.message {
-    animation: fadeIn 0.2s ease-out;
+/* Исправление для клавиатуры на мобильных устройствах */
+@media (max-height: 450px) {
+    .chat-header {
+        position: static;
+        height: auto;
+    }
+    
+    .messages {
+        padding-top: 10px;
+        padding-bottom: 60px;
+    }
 } 

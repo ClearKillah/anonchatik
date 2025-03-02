@@ -2,7 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#2AABEE">
     <title>Anonymous Chat</title>
     <link rel="stylesheet" href="css/style.css">
     <!-- Telegram Mini App API -->
@@ -17,7 +21,7 @@
                 <h1>Anonymous Chat</h1>
             </div>
             <p class="description">Общайтесь анонимно с случайными людьми прямо в Telegram!</p>
-            <button id="find-partner-btn" class="primary-btn">Найти собеседника</button>
+            <button id="find-partner-btn" class="primary-btn" type="button" aria-label="Найти собеседника">Найти собеседника</button>
         </div>
 
         <!-- Экран ожидания -->
@@ -30,12 +34,12 @@
         <div id="chat-screen" class="screen">
             <div class="chat-header">
                 <h2>Анонимный чат</h2>
-                <button id="skip-partner-btn" class="skip-btn">Пропустить</button>
+                <button id="skip-partner-btn" class="skip-btn" type="button" aria-label="Пропустить">Пропустить</button>
             </div>
             <div id="messages" class="messages"></div>
             <div class="input-area">
-                <input type="text" id="message-input" placeholder="Введите сообщение..." autocomplete="off">
-                <button id="send-message-btn">
+                <input type="text" id="message-input" placeholder="Введите сообщение..." autocomplete="off" autocapitalize="sentences">
+                <button id="send-message-btn" type="button" aria-label="Отправить">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
                     </svg>
