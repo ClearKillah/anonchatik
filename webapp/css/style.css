@@ -8,7 +8,7 @@
     --border-color: #ddd;
     --input-bg: #fff;
     --shadow-color: rgba(0, 0, 0, 0.1);
-    --message-received-bg: #f0f0f0;
+    --message-received-bg: #fff;
     --message-sent-bg: #e3f2fd;
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
@@ -34,7 +34,7 @@ body.dark-theme {
     --input-bg: #333;
     --shadow-color: rgba(0, 0, 0, 0.3);
     --message-received-bg: #333;
-    --message-sent-bg: #2b5278;
+    --message-sent-bg: #056162;
 }
 
 * {
@@ -89,13 +89,15 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(10px);
     opacity: 0;
     pointer-events: none;
 }
 
 .screen.active {
     display: flex;
+    transform: translateY(0);
     opacity: 1;
     pointer-events: auto;
 }
@@ -136,7 +138,7 @@ body {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
     box-shadow: 0 2px 6px var(--shadow-color);
     min-height: 48px;
     touch-action: manipulation;
@@ -155,6 +157,7 @@ body {
 .primary-btn:active, .primary-btn.active {
     transform: translateY(1px);
     background-color: #1e8ac7;
+    box-shadow: 0 1px 3px var(--shadow-color);
 }
 
 /* Добавляем эффект нажатия для мобильных устройств */
@@ -195,7 +198,7 @@ body {
     border: 4px solid rgba(0, 0, 0, 0.1);
     border-left-color: var(--primary-color);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite, pulse 2s ease-in-out infinite;
     margin-bottom: 20px;
 }
 
@@ -216,6 +219,12 @@ body {
     to {
         transform: rotate(360deg);
     }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 /* Экран чата */
@@ -246,6 +255,19 @@ body {
 .chat-header h2 {
     font-size: 18px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.chat-header h2::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
 }
 
 .skip-btn {
@@ -256,9 +278,23 @@ body {
     padding: 6px 12px;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, transform 0.1s;
     min-height: 36px;
     touch-action: manipulation;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+}
+
+.skip-btn::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
 }
 
 .skip-btn:hover {
@@ -267,12 +303,13 @@ body {
 
 .skip-btn:active {
     background-color: rgba(255, 255, 255, 0.4);
+    transform: scale(0.98);
 }
 
 .messages {
     flex: 1;
     width: 100%;
-    padding: 10px;
+    padding: 10px 16px;
     padding-top: calc(56px + var(--safe-area-inset-top) + 10px);
     padding-bottom: calc(70px + var(--safe-area-inset-bottom));
     overflow-y: auto;
@@ -287,17 +324,22 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
+    background-color: var(--bg-color);
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23e0e0e0' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
 }
 
 .message {
     max-width: 80%;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    border-radius: 16px;
+    padding: 8px 12px;
+    margin-bottom: 2px;
+    border-radius: 12px;
     word-wrap: break-word;
     position: relative;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
     animation: fadeIn 0.2s ease-out;
+    transition: border-radius 0.2s, margin 0.2s;
+    line-height: 1.4;
+    font-size: 15px;
 }
 
 @keyframes fadeIn {
@@ -309,26 +351,111 @@ body {
     align-self: flex-start;
     background-color: var(--message-received-bg);
     border-bottom-left-radius: 4px;
+    margin-right: auto;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .message.sent {
     align-self: flex-end;
-    background-color: var(--message-sent-bg);
+    background-color: #dcf8c6;
     border-bottom-right-radius: 4px;
+    margin-left: auto;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+body.dark-theme .message.sent {
+    background-color: #056162;
 }
 
 .message .timestamp {
-    font-size: 10px;
+    font-size: 11px;
     opacity: 0.7;
-    margin-top: 4px;
+    margin-top: 2px;
     text-align: right;
+    margin-left: 8px;
+    float: right;
+    line-height: 1.2;
+    margin-bottom: -2px;
+}
+
+/* Группировка сообщений */
+.message + .message.received {
+    margin-top: 1px;
+}
+
+.message + .message.sent {
+    margin-top: 1px;
+}
+
+.message.received + .message.sent,
+.message.sent + .message.received {
+    margin-top: 12px;
+}
+
+/* Стили для группированных сообщений */
+.message.grouped {
+    border-radius: 12px;
+}
+
+.message.grouped.received {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.message.grouped.sent {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+/* Первое сообщение в группе */
+.message:not(.grouped) + .message.grouped.received {
+    border-top-left-radius: 12px;
+}
+
+.message:not(.grouped) + .message.grouped.sent {
+    border-top-right-radius: 12px;
+}
+
+/* Последнее сообщение в группе */
+.message.grouped + .message:not(.grouped).received,
+.message.grouped.received + .message.sent,
+.message.grouped.received:last-child {
+    margin-top: 1px;
+    border-bottom-left-radius: 12px;
+}
+
+.message.grouped + .message:not(.grouped).sent,
+.message.grouped.sent + .message.received,
+.message.grouped.sent:last-child {
+    margin-top: 1px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Улучшенные стили для сообщений */
+.message-text {
+    word-break: break-word;
+}
+
+/* Добавляем галочки для отправленных сообщений */
+.message.sent::after {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 8px;
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='11' viewBox='0 0 16 11'%3E%3Cpath fill='%238c8c8c' d='M13.726 1.273l-7.984 7.984-3.754-3.754 1.414-1.414 2.34 2.34 6.57-6.57z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.7;
 }
 
 .input-area {
     display: flex;
     align-items: center;
-    padding: 10px;
-    padding-bottom: calc(10px + var(--safe-area-inset-bottom));
+    padding: 8px 10px;
+    padding-bottom: calc(8px + var(--safe-area-inset-bottom));
     background-color: var(--bg-color);
     border-top: 1px solid var(--border-color);
     position: fixed;
@@ -339,7 +466,7 @@ body {
     min-height: 60px;
     will-change: transform;
     transition: transform 0.2s ease-out;
-    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.05);
 }
 
 #message-input {
@@ -357,6 +484,13 @@ body {
     -webkit-appearance: none;
     appearance: none;
     z-index: 2;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) inset;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#message-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 1px 3px rgba(42, 171, 238, 0.2) inset;
 }
 
 #send-message-btn {
@@ -373,33 +507,84 @@ body {
     justify-content: center;
     cursor: pointer;
     touch-action: manipulation;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
 }
 
 #send-message-btn:active {
     background-color: #1e8ac7;
     transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 #send-message-btn svg {
     fill: white;
     width: 20px;
     height: 20px;
+    transform: rotate(45deg) translateX(-1px);
+}
+
+/* Стилизация плейсхолдера */
+#message-input::placeholder {
+    color: var(--tg-theme-hint-color);
+    opacity: 0.7;
+}
+
+/* Стилизация для темной темы */
+body.dark-theme #message-input {
+    border-color: #444;
+    background-color: #333;
+}
+
+body.dark-theme #message-input:focus {
+    border-color: var(--primary-color);
 }
 
 /* Системные сообщения */
 .system-message {
     align-self: center;
-    background-color: rgba(42, 171, 238, 0.1);
-    color: var(--primary-color);
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-size: 14px;
-    margin: 15px 0;
+    background-color: rgba(225, 245, 254, 0.7);
+    color: #2196F3;
+    padding: 8px 16px;
+    border-radius: 18px;
+    font-size: 13px;
+    margin: 12px 0;
     text-align: center;
-    max-width: 90%;
-    animation: fadeIn 0.3s ease-out;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    max-width: 85%;
+    animation: slideUp 0.3s ease-out;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
     font-weight: 500;
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.system-message.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.system-message::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    vertical-align: -3px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232196F3'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+body.dark-theme .system-message {
+    background-color: rgba(42, 171, 238, 0.15);
+    color: #81D4FA;
+}
+
+body.dark-theme .system-message::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2381D4FA'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E");
 }
 
 /* Медиа-запросы для адаптации к разным размерам экрана */
@@ -424,6 +609,44 @@ body {
     
     .message {
         max-width: 85%;
+        font-size: 14px;
+        padding: 7px 10px;
+    }
+    
+    .message .timestamp {
+        font-size: 10px;
+    }
+    
+    .system-message {
+        font-size: 12px;
+        padding: 6px 12px;
+        max-width: 90%;
+    }
+    
+    .chat-header h2 {
+        font-size: 16px;
+    }
+    
+    .chat-header h2::before {
+        width: 20px;
+        height: 20px;
+        margin-right: 6px;
+    }
+    
+    .skip-btn {
+        font-size: 13px;
+        padding: 5px 10px;
+    }
+    
+    .skip-btn::before {
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
+    }
+    
+    #message-input {
+        font-size: 15px;
+        padding: 8px 12px;
     }
 }
 
@@ -527,4 +750,35 @@ body.ios-device.keyboard-visible .messages {
     body.keyboard-visible .input-area {
         padding-bottom: 10px;
     }
+}
+
+/* Стили для темной темы */
+body.dark-theme .messages {
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23333' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+body.dark-theme .message.received {
+    background-color: #333;
+    color: #f5f5f5;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .message.sent {
+    background-color: #056162;
+    color: #f5f5f5;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .message .timestamp {
+    opacity: 0.8;
+}
+
+body.dark-theme .message.sent::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='11' viewBox='0 0 16 11'%3E%3Cpath fill='%23b0b0b0' d='M13.726 1.273l-7.984 7.984-3.754-3.754 1.414-1.414 2.34 2.34 6.57-6.57z'/%3E%3C/svg%3E");
+}
+
+body.dark-theme .input-area {
+    background-color: #1f1f1f;
+    border-top-color: #444;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.2);
 } 

@@ -87,7 +87,45 @@ document.addEventListener('DOMContentLoaded', () => {
         
         messageElement.appendChild(messageText);
         messageElement.appendChild(timestampElement);
+        
+        // Проверяем, нужно ли группировать сообщение с предыдущим
+        const lastMessage = messages.lastElementChild;
+        if (lastMessage && lastMessage.classList.contains('message')) {
+            const isSameType = lastMessage.classList.contains(isReceived ? 'received' : 'sent');
+            
+            // Если предыдущее сообщение того же типа, добавляем класс для группировки
+            if (isSameType) {
+                messageElement.classList.add('grouped');
+                
+                // Проверяем временной интервал между сообщениями
+                const lastMessageTime = new Date(getMessageTimestamp(lastMessage));
+                const currentMessageTime = new Date(timestamp);
+                const timeDiff = (currentMessageTime - lastMessageTime) / 1000 / 60; // разница в минутах
+                
+                // Если прошло больше 5 минут, не группируем
+                if (timeDiff > 5) {
+                    messageElement.classList.remove('grouped');
+                }
+            }
+        }
+        
         return messageElement;
+    }
+    
+    // Функция для получения временной метки сообщения
+    function getMessageTimestamp(messageElement) {
+        const timestampElement = messageElement.querySelector('.timestamp');
+        if (!timestampElement) return new Date().toISOString();
+        
+        // Получаем время из элемента
+        const timeText = timestampElement.textContent;
+        const [hours, minutes] = timeText.split(':').map(Number);
+        
+        // Создаем объект даты с текущей датой и указанным временем
+        const date = new Date();
+        date.setHours(hours, minutes, 0, 0);
+        
+        return date.toISOString();
     }
 
     // Функция для создания системного сообщения
@@ -95,6 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const systemMessage = document.createElement('div');
         systemMessage.classList.add('system-message');
         systemMessage.textContent = message;
+        
+        // Добавляем анимацию
+        setTimeout(() => {
+            systemMessage.classList.add('animated');
+        }, 10);
+        
         return systemMessage;
     }
 
@@ -253,8 +297,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Received message:', data);
             
             // Добавляем сообщение в чат
-            messages.appendChild(createMessageElement(data.message, true, data.timestamp));
-            scrollMessagesToBottom();
+            const messageElement = createMessageElement(data.message, true, data.timestamp);
+            messages.appendChild(messageElement);
+            
+            // Проверяем, нужно ли прокручивать вниз
+            const shouldScroll = messages.scrollTop + messages.clientHeight >= messages.scrollHeight - 100;
+            if (shouldScroll) {
+                scrollMessagesToBottom();
+            }
         });
 
         // Подтверждение отправки сообщения
@@ -262,7 +312,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Message sent:', data);
             
             // Добавляем отправленное сообщение в чат
-            messages.appendChild(createMessageElement(data.message, false, data.timestamp));
+            const messageElement = createMessageElement(data.message, false, data.timestamp);
+            messages.appendChild(messageElement);
             scrollMessagesToBottom();
         });
 
