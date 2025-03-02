@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -136,15 +136,65 @@ const PrimaryButton = styled.button`
 `;
 
 const StartScreen = ({ onFindPartner }) => {
+  const containerRef = useRef(null);
+  
+  // Предотвращаем сворачивание приложения при взаимодействии с контейнером
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    // Проверяем, доступен ли метод disableVerticalSwipes в Telegram API
+    if (window.Telegram && window.Telegram.WebApp && 
+        typeof window.Telegram.WebApp.disableVerticalSwipes === 'function') {
+      // Если метод доступен, используем его (уже вызван в App.js)
+      return;
+    }
+    
+    // Альтернативное решение для контейнера
+    const container = containerRef.current;
+    let touchStartY = 0;
+    
+    const handleTouchStart = (e) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    
+    const handleTouchMove = (e) => {
+      const touchY = e.touches[0].clientY;
+      
+      // Если свайп вниз - предотвращаем действие по умолчанию
+      if (touchY > touchStartY) {
+        e.preventDefault();
+      }
+    };
+    
+    // Добавляем обработчики событий для контейнера
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    
+    // Возвращаем функцию очистки
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [containerRef.current]);
+  
+  // Обработчик нажатия на кнопку с предотвращением сворачивания
+  const handleFindPartner = (e) => {
+    // Предотвращаем всплытие события, чтобы избежать сворачивания
+    e.stopPropagation();
+    
+    // Вызываем переданный обработчик
+    onFindPartner();
+  };
+  
   return (
-    <Container>
+    <Container ref={containerRef}>
       <ContentWrapper>
         <Logo>
           <LogoImage src="/img/logo.svg" alt="Anonymous Chat Logo" />
           <LogoTitle>ANONCHATIK</LogoTitle>
         </Logo>
         <Description>Общайтесь анонимно с случайными людьми прямо в Telegram!</Description>
-        <PrimaryButton onClick={onFindPartner}>Найти собеседника</PrimaryButton>
+        <PrimaryButton onClick={handleFindPartner}>Найти собеседника</PrimaryButton>
       </ContentWrapper>
     </Container>
   );

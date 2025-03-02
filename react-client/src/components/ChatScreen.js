@@ -135,6 +135,46 @@ const ChatScreen = ({ messages, onSendMessage, onSkipPartner }) => {
     }
   }, [messages]);
   
+  // Предотвращаем сворачивание приложения при скроллинге сообщений
+  useEffect(() => {
+    if (!messagesContainerRef.current) return;
+    
+    // Проверяем, доступен ли метод disableVerticalSwipes в Telegram API
+    if (window.Telegram && window.Telegram.WebApp && 
+        typeof window.Telegram.WebApp.disableVerticalSwipes === 'function') {
+      // Если метод доступен, используем его (уже вызван в App.js)
+      return;
+    }
+    
+    // Альтернативное решение для контейнера сообщений
+    const messagesContainer = messagesContainerRef.current;
+    let touchStartY = 0;
+    
+    const handleTouchStart = (e) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    
+    const handleTouchMove = (e) => {
+      const touchY = e.touches[0].clientY;
+      const scrollTop = messagesContainer.scrollTop;
+      
+      // Если скролл в начале и свайп вниз - предотвращаем действие по умолчанию
+      if (scrollTop <= 0 && touchY > touchStartY) {
+        e.preventDefault();
+      }
+    };
+    
+    // Добавляем обработчики событий для контейнера сообщений
+    messagesContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+    messagesContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+    
+    // Возвращаем функцию очистки
+    return () => {
+      messagesContainer.removeEventListener('touchstart', handleTouchStart);
+      messagesContainer.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [messagesContainerRef.current]);
+  
   return (
     <Container>
       <Header>

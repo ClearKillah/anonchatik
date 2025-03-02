@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
 const InputArea = styled.div`
@@ -90,6 +90,67 @@ const SendButton = styled.button`
 
 const MessageInput = ({ onSendMessage }) => {
   const [message, setMessage] = useState('');
+  const inputAreaRef = useRef(null);
+  const inputRef = useRef(null);
+  
+  // Предотвращаем сворачивание приложения при взаимодействии с полем ввода
+  useEffect(() => {
+    if (!inputAreaRef.current) return;
+    
+    // Проверяем, доступен ли метод disableVerticalSwipes в Telegram API
+    if (window.Telegram && window.Telegram.WebApp && 
+        typeof window.Telegram.WebApp.disableVerticalSwipes === 'function') {
+      // Если метод доступен, используем его (уже вызван в App.js)
+      return;
+    }
+    
+    // Альтернативное решение для области ввода
+    const inputArea = inputAreaRef.current;
+    let touchStartY = 0;
+    
+    const handleTouchStart = (e) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    
+    const handleTouchMove = (e) => {
+      const touchY = e.touches[0].clientY;
+      
+      // Всегда предотвращаем свайп вниз в области ввода
+      if (touchY > touchStartY) {
+        e.preventDefault();
+      }
+    };
+    
+    // Добавляем обработчики событий для области ввода
+    inputArea.addEventListener('touchstart', handleTouchStart, { passive: false });
+    inputArea.addEventListener('touchmove', handleTouchMove, { passive: false });
+    
+    // Возвращаем функцию очистки
+    return () => {
+      inputArea.removeEventListener('touchstart', handleTouchStart);
+      inputArea.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [inputAreaRef.current]);
+  
+  // Обработка фокуса на поле ввода
+  useEffect(() => {
+    if (!inputRef.current) return;
+    
+    const handleFocus = () => {
+      // При фокусе на поле ввода прокручиваем страницу вниз
+      // чтобы избежать проблем с клавиатурой и сворачиванием
+      setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+      }, 100);
+    };
+    
+    const input = inputRef.current;
+    input.addEventListener('focus', handleFocus);
+    
+    return () => {
+      input.removeEventListener('focus', handleFocus);
+    };
+  }, [inputRef.current]);
   
   const handleSend = () => {
     if (!message.trim()) return;
@@ -106,8 +167,9 @@ const MessageInput = ({ onSendMessage }) => {
   };
   
   return (
-    <InputArea>
+    <InputArea ref={inputAreaRef}>
       <Input
+        ref={inputRef}
         type="text"
         placeholder="Введите сообщение..."
         value={message}
