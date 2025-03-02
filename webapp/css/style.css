@@ -132,6 +132,10 @@ body {
     transition: background-color 0.2s;
     box-shadow: 0 2px 6px var(--shadow-color);
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    outline: none;
 }
 
 .primary-btn:hover {
@@ -140,6 +144,7 @@ body {
 
 .primary-btn:active {
     transform: translateY(1px);
+    background-color: #1e8ac7;
 }
 
 /* Экран ожидания */
@@ -332,5 +337,36 @@ body {
 @supports (-webkit-touch-callout: none) {
     .input-area {
         padding-bottom: calc(10px + var(--safe-area-bottom));
+    }
+}
+
+/* Стили для клавиатуры */
+body.keyboard-visible .input-area {
+    position: fixed;
+}
+
+/* Дополнительные стили для мобильных устройств */
+@media (max-width: 767px) {
+    #chat-screen {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-header {
+        position: fixed;
+    }
+    
+    .messages {
+        margin-top: 50px;
+        padding-bottom: 70px;
+    }
+    
+    .input-area {
+        position: fixed;
+    }
+    
+    /* Улучшенные стили для кнопок на мобильных устройствах */
+    .primary-btn, .skip-btn, #send-message-btn {
+        min-height: 44px; /* Минимальная высота для удобного нажатия */
     }
 }

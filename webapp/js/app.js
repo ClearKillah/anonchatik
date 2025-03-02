@@ -113,7 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Получаем хост из текущего URL
         const host = window.location.origin;
         console.log('Connecting to server at:', host);
-        socket = io(host);
+        
+        // Создаем новое соединение с опциями для автоматического переподключения
+        socket = io(host, {
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            timeout: 10000
+        });
 
         // Обработка регистрации пользователя
         socket.on('connect', () => {
@@ -134,6 +141,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Регистрируем пользователя
             console.log('Registering user with ID:', telegramId);
             socket.emit('register', { userId: telegramId });
+            
+            // Обновляем статусное сообщение
+            const statusMessage = document.getElementById('status-message');
+            if (statusMessage) {
+                statusMessage.textContent = 'Подключение к серверу установлено...';
+            }
         });
 
         // Подтверждение регистрации
@@ -213,15 +226,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2000);
         });
 
-        // Обработка ошибок
+        // Обработка ошибок соединения
+        socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+            
+            // Обновляем статусное сообщение
+            const statusMessage = document.getElementById('status-message');
+            if (statusMessage) {
+                statusMessage.textContent = 'Ошибка подключения к серверу. Пытаемся переподключиться...';
+            }
+        });
+
+        // Обработка ошибок сервера
         socket.on('error', (data) => {
-            console.error('Error:', data);
-            alert(data.message);
+            console.error('Server error:', data);
+            if (data.message) {
+                alert(data.message);
+            }
         });
 
         // Обработка отключения
-        socket.on('disconnect', () => {
-            console.log('Disconnected from server');
+        socket.on('disconnect', (reason) => {
+            console.log('Disconnected from server. Reason:', reason);
+            
+            // Обновляем статусное сообщение
+            const statusMessage = document.getElementById('status-message');
+            if (statusMessage && currentScreen === startScreen) {
+                statusMessage.textContent = 'Соединение с сервером потеряно. Пытаемся переподключиться...';
+            }
+            
+            // Если пользователь был в чате, показываем сообщение
+            if (currentScreen === chatScreen) {
+                messages.appendChild(createSystemMessage('Соединение с сервером потеряно. Пытаемся переподключиться...'));
+                messages.scrollTop = messages.scrollHeight;
+            }
         });
     }
 
@@ -229,7 +267,52 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeEventListeners() {
         // Кнопка поиска собеседника
         findPartnerBtn.addEventListener('click', () => {
+            console.log('Find partner button clicked');
+            
+            // Проверяем, установлено ли соединение
+            if (!socket || !socket.connected) {
+                console.error('Socket not connected');
+                
+                // Пытаемся переподключиться
+                if (socket) {
+                    socket.connect();
+                } else {
+                    initializeSocket();
+                }
+                
+                // Показываем сообщение пользователю
+                const statusMessage = document.getElementById('status-message');
+                if (statusMessage) {
+                    statusMessage.textContent = 'Переподключение к серверу...';
+                }
+                
+                // Пробуем отправить запрос через 1 секунду
+                setTimeout(() => {
+                    if (socket && socket.connected) {
+                        console.log('Retrying findPartner after reconnection');
+                        socket.emit('findPartner');
+                        
+                        // Показываем экран ожидания
+                        showScreen(waitingScreen);
+                    } else {
+                        alert('Не удалось подключиться к серверу. Пожалуйста, перезагрузите приложение.');
+                    }
+                }, 1000);
+                
+                return;
+            }
+            
+            // Если соединение установлено, отправляем запрос на поиск собеседника
             socket.emit('findPartner');
+            
+            // Показываем экран ожидания сразу
+            showScreen(waitingScreen);
+            
+            // Обновляем сообщение о поиске
+            const waitingMessage = document.getElementById('waiting-message');
+            if (waitingMessage) {
+                waitingMessage.textContent = 'Поиск собеседника...';
+            }
         });
 
         // Кнопка пропуска собеседника
