@@ -114,17 +114,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const host = window.location.origin;
         console.log('Connecting to server at:', host);
         
-        // Создаем новое соединение с опциями для автоматического переподключения
+        // Закрываем существующее соединение, если оно есть
+        if (socket) {
+            console.log('Closing existing socket connection');
+            socket.close();
+        }
+        
+        // Создаем новое соединение с улучшенными опциями для автоматического переподключения
         socket = io(host, {
             reconnection: true,
-            reconnectionAttempts: 5,
+            reconnectionAttempts: 10,
             reconnectionDelay: 1000,
-            timeout: 10000
+            reconnectionDelayMax: 5000,
+            timeout: 20000,
+            forceNew: true,
+            transports: ['websocket', 'polling']
+        });
+
+        // Добавляем дополнительное логирование соединения
+        socket.on('connecting', () => {
+            console.log('Socket connecting...');
         });
 
         // Обработка регистрации пользователя
         socket.on('connect', () => {
             console.log('Connected to server with socket ID:', socket.id);
+            
+            // Обновляем статусное сообщение
+            const statusMessage = document.getElementById('status-message');
+            if (statusMessage) {
+                statusMessage.textContent = 'Подключение к серверу установлено...';
+            }
             
             // Получаем ID пользователя из параметров запроса или из Telegram Mini App
             let telegramId = null;
@@ -138,15 +158,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Got Telegram ID from URL:', telegramId);
             }
             
+            // Если ID не найден, генерируем временный
+            if (!telegramId) {
+                telegramId = 'temp_' + Math.floor(Math.random() * 1000000);
+                console.log('Generated temporary ID:', telegramId);
+            }
+            
             // Регистрируем пользователя
             console.log('Registering user with ID:', telegramId);
             socket.emit('register', { userId: telegramId });
-            
-            // Обновляем статусное сообщение
-            const statusMessage = document.getElementById('status-message');
-            if (statusMessage) {
-                statusMessage.textContent = 'Подключение к серверу установлено...';
-            }
         });
 
         // Подтверждение регистрации
@@ -269,21 +289,28 @@ document.addEventListener('DOMContentLoaded', () => {
         findPartnerBtn.addEventListener('click', () => {
             console.log('Find partner button clicked');
             
+            // Дополнительное логирование для отладки
+            console.log('Socket status:', {
+                exists: !!socket,
+                connected: socket?.connected,
+                id: socket?.id
+            });
+            
             // Проверяем, установлено ли соединение
             if (!socket || !socket.connected) {
                 console.error('Socket not connected');
+                
+                // Показываем сообщение пользователю
+                const statusMessage = document.getElementById('status-message');
+                if (statusMessage) {
+                    statusMessage.textContent = 'Переподключение к серверу...';
+                }
                 
                 // Пытаемся переподключиться
                 if (socket) {
                     socket.connect();
                 } else {
                     initializeSocket();
-                }
-                
-                // Показываем сообщение пользователю
-                const statusMessage = document.getElementById('status-message');
-                if (statusMessage) {
-                    statusMessage.textContent = 'Переподключение к серверу...';
                 }
                 
                 // Пробуем отправить запрос через 1 секунду
@@ -302,16 +329,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
+            // Добавляем визуальное подтверждение нажатия
+            findPartnerBtn.classList.add('btn-active');
+            setTimeout(() => {
+                findPartnerBtn.classList.remove('btn-active');
+            }, 200);
+            
             // Если соединение установлено, отправляем запрос на поиск собеседника
-            socket.emit('findPartner');
-            
-            // Показываем экран ожидания сразу
-            showScreen(waitingScreen);
-            
-            // Обновляем сообщение о поиске
-            const waitingMessage = document.getElementById('waiting-message');
-            if (waitingMessage) {
-                waitingMessage.textContent = 'Поиск собеседника...';
+            try {
+                console.log('Emitting findPartner event');
+                socket.emit('findPartner');
+                
+                // Показываем экран ожидания сразу
+                showScreen(waitingScreen);
+                
+                // Обновляем сообщение о поиске
+                const waitingMessage = document.getElementById('waiting-message');
+                if (waitingMessage) {
+                    waitingMessage.textContent = 'Поиск собеседника...';
+                }
+            } catch (error) {
+                console.error('Error when emitting findPartner:', error);
+                alert('Произошла ошибка при поиске собеседника. Пожалуйста, попробуйте снова.');
             }
         });
 
